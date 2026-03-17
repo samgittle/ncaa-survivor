@@ -321,6 +321,7 @@ const DEFAULT_STATE = {
 // Live data fetched from ESPN (not persisted, re-fetched on load)
 let liveEliminated = [];
 let teamDayMap = {};   // teamName -> dayNum, built from ESPN schedule
+let espnPickPct = {};  // teamName -> % of TC brackets picking them to win their game
 let lastSyncTime = null;
 
 // Tournament date → survivor day number (First Four dates omitted — not pick days)
@@ -452,6 +453,24 @@ async function fetchLiveResults() {
   if (syncBtn) syncBtn.textContent = "🔄 Sync";
   if (syncLabel) syncLabel.textContent = `Synced ${lastSyncTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
   renderAll();
+}
+
+async function fetchESPNPickPct() {
+  try {
+    const res = await fetch("https://gambit-api.fantasy.espn.com/apis/v1/challenges/tcmen?view=whopickedwhom", { cache: "no-store" });
+    const data = await res.json();
+    const pct = {};
+    for (const prop of (data.propositions || [])) {
+      for (const outcome of (prop.possibleOutcomes || [])) {
+        const cc = outcome.choiceCounters?.[0];
+        if (!cc) continue;
+        const resolved = ESPN_MAP[outcome.name] || outcome.name;
+        pct[resolved] = Math.round(cc.percentage * 1000) / 10;
+      }
+    }
+    espnPickPct = pct;
+    renderAll();
+  } catch(e) { /* silent fail */ }
 }
 let state = { ...DEFAULT_STATE };
 
@@ -728,7 +747,7 @@ function renderTable() {
   const colFns = {
     name: t=>t.name, seed: t=>parseInt(t.seed),
     r32:t=>t.r32, s16:t=>t.s16, e8:t=>t.e8, f4:t=>t.f4, cp:t=>t.cp, win:t=>t.win,
-    wp:t=>t._wp, diff:t=>t._diff, fv:t=>t._fv, comp:t=>t._comp,
+    wp:t=>t._wp, tc:t=>(espnPickPct[t.name]||0), diff:t=>t._diff, fv:t=>t._fv, comp:t=>t._comp,
   };
   const fn = colFns[state.sortCol] || (t=>t._comp);
   data.sort((a,b) => dir*(fn(a)>fn(b)?1:-1));
@@ -738,6 +757,7 @@ function renderTable() {
     {k:"r32",label:"R32"},{k:"s16",label:"S16"},{k:"e8",label:"E8"},
     {k:"f4",label:"F4"},{k:"cp",label:"CP"},{k:"win",label:"WIN"},
     {k:"wp",label:"Win Prob"},
+    {k:"tc",    label:"Bracket%",  tip:"% of ESPN Tournament Challenge brackets that picked this team to win their current-round game. Source: ESPN TC public data."},
     {k:"diff",  label:"Diff",      tip:"P(win this round game) × P(lose next round game). High = great pick for this round, low future loss. e.g. R64 Diff = R32% − S16%."},
     {k:"fv",    label:"Future",    tip:"Discounted sum of this team's value in all future rounds (0.5× per round ahead). High = dangerous to use now, they're more valuable later."},
     {k:"comp",  label:"Composite", tip:"Diff − 0.4 × Future Cost. The primary sort key: balances picking a likely winner today against preserving optionality for harder future rounds."},
@@ -794,6 +814,7 @@ function renderTable() {
       <td class="${pctClass(t.cp)}">${fmt(t.cp)}</td>
       <td class="${pctClass(t.win)}">${fmt(t.win)}</td>
       <td class="win-prob" style="font-weight:700">${t._wp.toFixed(1)}%</td>
+      <td style="color:#94a3b8">${espnPickPct[t.name] !== undefined ? espnPickPct[t.name].toFixed(1)+'%' : '—'}</td>
       <td class="${diffClass(t._diff)} diff-col">${t._diff.toFixed(1)}%</td>
       <td class="future-val">${t._fv.toFixed(1)}%</td>
       <td class="composite-val" style="font-weight:700">${t._comp.toFixed(1)}%</td>
@@ -839,7 +860,9 @@ function renderAll() {
 loadState();
 renderAll();
 fetchLiveResults();
-setInterval(fetchLiveResults, 30 * 60 * 1000); // re-sync every 30 min
+fetchESPNPickPct();
+setInterval(fetchLiveResults, 30 * 60 * 1000);
+setInterval(fetchESPNPickPct, 30 * 60 * 1000);
 </script>
 </body>
 </html>
