@@ -146,6 +146,18 @@ td { padding: 6px 9px; white-space: nowrap; }
 .et-available { background: #1e3a5f; color: #93c5fd; }
 .et-used      { background: #1a2e1a; color: #86efac; }
 .et-na        { background: #1f2937; color: #4b5563; }
+/* Bracket */
+.bracket-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-top: 8px; }
+@media(max-width:900px) { .bracket-grid { grid-template-columns: 1fr 1fr; } }
+.bracket-region { background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 10px; padding: 12px; }
+.bracket-region h3 { font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.bp { margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid #1e2130; }
+.bp:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.bt { display: flex; align-items: center; gap: 5px; padding: 2px 4px; border-radius: 3px; font-size: 0.72rem; }
+.bt.elim { text-decoration: line-through; color: #ef4444; opacity: 0.55; }
+.bt.picked { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
+.bt.won { background: #14532d; color: #86efac; font-weight: 600; }
+.bt-seed { font-size: 0.62rem; color: #4b5563; min-width: 22px; }
 </style>
 </head>
 <body>
@@ -189,6 +201,9 @@ td { padding: 6px 9px; white-space: nowrap; }
   <div class="table-wrapper">
     <table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
   </div>
+
+  <!-- Bracket -->
+  <div id="bracketSection" style="margin-top:32px;padding-top:20px;border-top:1px solid #1e2130"></div>
 
   <!-- Entries (bottom) -->
   <div class="entries-bar" style="margin-top:32px;padding-top:20px;border-top:1px solid #1e2130;">
@@ -750,11 +765,36 @@ function renderTable() {
   }).join("");
 }
 
+function renderBracket() {
+  const PAIRS = [[1,16],[8,9],[5,12],[4,13],[6,11],[3,14],[7,10],[2,15]];
+  const allPicked = new Set(Object.values(state.picks).flatMap(arr => arr.filter(Boolean)));
+
+  const regions = ["East","Midwest","South","West"];
+  const html = `<div class="section-title">Bracket</div><div class="bracket-grid">${
+    regions.map(region => {
+      const rTeams = TEAMS.filter(t => t.region === region);
+      const pairs = PAIRS.map(([s1,s2]) => {
+        const slot = [s1,s2].flatMap(s => rTeams.filter(t => parseInt(t.seed) === s));
+        return `<div class="bp">${slot.map(t => {
+          const out = isTournamentOut(t.name);
+          const picked = allPicked.has(t.name);
+          const cls = out ? 'elim' : picked ? 'picked' : '';
+          return `<div class="bt ${cls}"><span class="bt-seed">${t.seed}</span>${t.name}${t.ff?` <span class="ff-badge">FF</span>`:''}</div>`;
+        }).join('')}</div>`;
+      }).join('');
+      return `<div class="bracket-region"><h3>${region}</h3>${pairs}</div>`;
+    }).join('')
+  }</div>`;
+
+  document.getElementById('bracketSection').innerHTML = html;
+}
+
 function renderAll() {
   renderEntries();
   renderDayCards();
   renderPicks();
   renderTable();
+  renderBracket();
 }
 
 loadState();
