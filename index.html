@@ -400,7 +400,9 @@ async function fetchLiveResults() {
   if (syncBtn) syncBtn.textContent = "Syncing…";
 
   const todayStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
-  const datesToFetch = TOURNEY_DATES.filter(d => d <= todayStr);
+  // Fetch ALL tournament dates for the schedule (so teamDayMap is always populated),
+  // but only completed games will have results so eliminations self-filter.
+  const datesToFetch = TOURNEY_DATES;
 
   const found = new Set();
   const dayMap = {};
