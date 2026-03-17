@@ -318,9 +318,19 @@ const DEFAULT_STATE = {
   sortDir: "desc",
 };
 
-// Live eliminations fetched from ESPN (not persisted, re-fetched on load)
+// Live data fetched from ESPN (not persisted, re-fetched on load)
 let liveEliminated = [];
+let teamDayMap = {};   // teamName -> dayNum, built from ESPN schedule
 let lastSyncTime = null;
+
+// Tournament date → survivor day number (First Four dates omitted — not pick days)
+const DATE_TO_DAY = {
+  '20260319':1, '20260320':2,
+  '20260321':3, '20260322':4,
+  '20260326':5, '20260327':6,
+  '20260328':7, '20260329':8,
+  '20260404':9, '20260406':10,
+};
 
 // All tournament dates to check
 const TOURNEY_DATES = [
@@ -393,6 +403,7 @@ async function fetchLiveResults() {
   const datesToFetch = TOURNEY_DATES.filter(d => d <= todayStr);
 
   const found = new Set();
+  const dayMap = {};
   await Promise.all(datesToFetch.map(async date => {
     try {
       const res = await fetch(
@@ -400,18 +411,27 @@ async function fetchLiveResults() {
         { cache: "no-store" }
       );
       const data = await res.json();
+      const dayNum = DATE_TO_DAY[date];
       for (const event of (data.events || [])) {
         const comp = event.competitions?.[0];
-        if (!comp?.status?.type?.completed) continue;
-        const loser = comp.competitors?.find(c => c.winner === false);
-        if (!loser) continue;
-        const name = resolveESPNName(loser.team);
-        if (name) found.add(name);
+        // Map both teams to their day (scheduled OR completed)
+        if (dayNum) {
+          for (const competitor of (comp?.competitors || [])) {
+            const name = resolveESPNName(competitor.team);
+            if (name) dayMap[name] = dayNum;
+          }
+        }
+        // Track losers for elimination
+        if (comp?.status?.type?.completed) {
+          const loser = comp.competitors?.find(c => c.winner === false);
+          if (loser) { const name = resolveESPNName(loser.team); if (name) found.add(name); }
+        }
       }
     } catch(e) { /* skip failed date */ }
   }));
 
   liveEliminated = [...found];
+  teamDayMap = dayMap;
   lastSyncTime = new Date();
   if (syncBtn) syncBtn.textContent = "🔄 Sync";
   if (syncLabel) syncLabel.textContent = `Synced ${lastSyncTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
@@ -463,9 +483,12 @@ function availableEntriesForTeam(teamName, dayNum) {
 }
 
 function isEligible(t, day) {
-  if (!day.regions.includes(t.region)) return false;
   const prob = t[ROUND_FIELD[day.round]] || 0;
-  return prob > 0;
+  if (prob === 0) return false;
+  // If ESPN has told us which day this team plays, use that
+  if (teamDayMap[t.name] !== undefined) return teamDayMap[t.name] === day.num;
+  // Fallback before schedule loads: Silver odds say they can reach this round
+  return true;
 }
 
 function isTournamentOut(teamName) {
