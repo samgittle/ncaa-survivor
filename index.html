@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCAA Survivor 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; }
+
+.container { max-width: 1500px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.header h1 { font-size: 1.4rem; font-weight: 700; }
+.header h2 { font-size: 0.85rem; font-weight: 400; color: #888; }
+
+/* Entries bar */
+.entries-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+.entries-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.06em; }
+.entry-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 8px;
+  padding: 5px 12px; font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+}
+.entry-badge:hover { border-color: #555; }
+.entry-badge.alive { border-color: #166534; color: #86efac; }
+.entry-badge.dead  { border-color: #7f1d1d; color: #f87171; opacity: 0.6; text-decoration: line-through; }
+.entry-dot { width: 8px; height: 8px; border-radius: 50%; }
+.entry-badge.alive .entry-dot { background: #22c55e; }
+.entry-badge.dead  .entry-dot { background: #ef4444; }
+.entries-info { font-size: 0.75rem; color: #666; margin-left: 4px; }
+
+/* Day cards */
+.days-scroll { overflow-x: auto; margin-bottom: 20px; padding-bottom: 4px; }
+.days-row { display: flex; gap: 8px; min-width: max-content; }
+.day-card {
+  background: #1a1d27; border: 2px solid #2a2d3a; border-radius: 10px;
+  padding: 10px 12px; cursor: pointer; min-width: 162px; transition: all 0.15s;
+}
+.day-card:hover { border-color: #3a3d4a; }
+.day-card.active { border-color: #2563eb; background: #1c2440; }
+.day-card .dc-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.day-card .dc-label { font-size: 0.85rem; font-weight: 700; }
+.day-card .dc-date  { font-size: 0.65rem; color: #666; }
+.day-card .dc-slots { display: flex; flex-direction: column; gap: 3px; }
+.pick-slot {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.7rem; padding: 3px 5px; border-radius: 4px;
+  background: #0f1117; min-height: 22px;
+}
+.pick-slot.dead { opacity: 0.4; }
+.pick-slot .ps-entry { color: #555; font-size: 0.65rem; min-width: 16px; }
+.pick-slot .ps-team { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ccc; }
+.pick-slot.empty .ps-team { color: #3a3d4a; font-style: italic; }
+.pick-slot .ps-remove { color: #ef4444; cursor: pointer; font-size: 0.8rem; padding: 0 2px; line-height: 1; }
+.pick-slot .ps-remove:hover { color: #fca5a5; }
+
+/* Section titles */
+.section-title { font-size: 0.75rem; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+/* Top picks */
+.picks-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.pick-card {
+  background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 10px; padding: 12px;
+  transition: all 0.15s; position: relative;
+}
+.pick-card.rank-1 { border-color: #d97706; }
+.pick-card.rank-2 { border-color: #4b5563; }
+.pick-card.rank-3 { border-color: #78350f; }
+.pick-card .pc-rank { position: absolute; top: 10px; right: 10px; font-size: 1.1rem; }
+.pick-card .pc-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 1px; padding-right: 24px; }
+.pick-card .pc-meta { font-size: 0.68rem; color: #888; margin-bottom: 8px; }
+.pick-card .pc-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+.score-box { background: #0f1117; border-radius: 5px; padding: 5px 7px; }
+.score-box .sb-label { font-size: 0.6rem; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+.score-box .sb-val { font-size: 0.9rem; font-weight: 700; }
+.pick-btn {
+  width: 100%; padding: 6px; border: none; border-radius: 6px; cursor: pointer;
+  font-size: 0.75rem; font-weight: 700; background: #1d4ed8; color: #fff; transition: all 0.15s;
+}
+.pick-btn:hover { background: #2563eb; }
+.pick-btn:disabled { background: #374151; color: #6b7280; cursor: default; }
+.already-picked { font-size: 0.7rem; color: #86efac; text-align: center; padding: 5px; }
+.win-prob { color: #34d399; }
+.diff-val { color: #60a5fa; }
+.composite-val { color: #f59e0b; }
+.future-val { color: #a78bfa; }
+
+/* FF badge */
+.ff-badge { font-size: 0.6rem; background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; padding: 1px 5px; border-radius: 3px; }
+
+/* Table */
+.table-controls { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+.table-controls select, .table-controls input {
+  background: #1a1d27; border: 1px solid #333; color: #eee;
+  padding: 5px 9px; border-radius: 6px; font-size: 0.78rem;
+}
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.77rem; }
+thead th {
+  background: #14171f; padding: 7px 9px; text-align: left; color: #666;
+  font-weight: 600; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid #2a2d3a; white-space: nowrap; cursor: pointer; user-select: none;
+}
+thead th:hover { color: #ccc; }
+thead th.sort-asc::after  { content: ' ↑'; color: #60a5fa; }
+thead th.sort-desc::after { content: ' ↓'; color: #60a5fa; }
+tbody tr { border-bottom: 1px solid #1a1d27; transition: background 0.1s; }
+tbody tr:hover { background: #1e2130; }
+tbody tr.picked-today { background: #0d1f14; }
+tbody tr.tournament-out { opacity: 0.25; }
+td { padding: 6px 9px; white-space: nowrap; }
+.seed-badge {
+  display: inline-block; width: 22px; height: 22px; border-radius: 4px;
+  text-align: center; line-height: 22px; font-weight: 700; font-size: 0.68rem;
+}
+.region-tag { font-size: 0.65rem; color: #666; margin-left: 4px; }
+.pct-hi  { color: #34d399; font-weight: 600; }
+.pct-med { color: #fbbf24; }
+.pct-lo  { color: #6b7280; }
+.diff-col { font-weight: 700; }
+.diff-hi  { color: #34d399; }
+.diff-ok  { color: #60a5fa; }
+.diff-lo  { color: #6b7280; }
+.best-badge { font-size: 0.62rem; background: #1e3a5f; color: #60a5fa; padding: 2px 6px; border-radius: 3px; }
+.tbl-pick-btn {
+  font-size: 0.65rem; padding: 3px 9px; border-radius: 4px; border: none; cursor: pointer;
+  font-weight: 700; background: #1d4ed8; color: #fff; transition: all 0.12s;
+}
+.tbl-pick-btn:hover { background: #2563eb; }
+.tbl-pick-btn:disabled { background: #1f2937; color: #4b5563; cursor: default; }
+.tbl-elim-btn {
+  font-size: 0.65rem; padding: 3px 9px; border-radius: 4px; border: none; cursor: pointer;
+  font-weight: 700; background: #450a0a; color: #fca5a5; margin-left: 4px; transition: all 0.12s;
+}
+.tbl-elim-btn:hover { background: #7f1d1d; }
+.tbl-reset-btn {
+  font-size: 0.65rem; padding: 3px 9px; border-radius: 4px; border: none; cursor: pointer;
+  font-weight: 700; background: #374151; color: #d1d5db; margin-left: 4px; transition: all 0.12s;
+}
+.picked-label { font-size: 0.65rem; color: #86efac; font-weight: 700; }
+.elim-label   { font-size: 0.65rem; color: #f87171; font-weight: 700; }
+.entry-tags { display: flex; gap: 3px; flex-wrap: wrap; }
+.entry-tag { font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.et-available { background: #1e3a5f; color: #93c5fd; }
+.et-used      { background: #1a2e1a; color: #86efac; }
+.et-na        { background: #1f2937; color: #4b5563; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>NCAA Survivor 2026</h1>
+      <h2>Silver Bulletin odds &middot; 10 days &middot; 3 entries</h2>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+      <span id="syncLabel" style="font-size:0.7rem;color:#555;"></span>
+      <button id="syncBtn" onclick="fetchLiveResults()" style="background:#1e3a5f;color:#93c5fd;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">🔄 Sync</button>
+      <button onclick="resetAll()" style="background:#374151;color:#d1d5db;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.75rem;">Reset All</button>
+    </div>
+  </div>
+
+  <!-- Day cards -->
+  <div class="days-scroll">
+    <div class="days-row" id="dayCards"></div>
+  </div>
+
+  <!-- Top picks -->
+  <div class="section-title" id="picksTitle">Top Picks</div>
+  <div class="picks-panel" id="picksPanel"></div>
+
+  <!-- Table -->
+  <div class="table-controls">
+    <div class="section-title" style="margin-bottom:0">All Teams</div>
+    <select id="filterRegion" onchange="renderTable()">
+      <option value="">All Regions</option>
+      <option>East</option><option>West</option><option>South</option><option>Midwest</option>
+    </select>
+    <select id="filterDay" onchange="renderTable()">
+      <option value="">All Teams</option>
+      <option value="today">Today's Eligible Only</option>
+    </select>
+    <input type="text" id="searchTeam" placeholder="Search..." oninput="renderTable()" style="width:130px">
+  </div>
+  <div class="table-wrapper">
+    <table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
+  </div>
+
+  <!-- Entries (bottom) -->
+  <div class="entries-bar" style="margin-top:32px;padding-top:20px;border-top:1px solid #1e2130;">
+    <span class="entries-label">Manage Entries</span>
+    <div id="entryBadges"></div>
+    <span class="entries-info" id="entriesInfo"></span>
+  </div>
+
+</div>
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const TEAMS = [
+  // EAST
+  { name:"Duke",           seed:"1",   region:"East",    r64:100,  r32:99,   s16:75.9, e8:55.2, f4:40.9, cp:25.8, win:15.8 },
+  { name:"Siena",          seed:"16",  region:"East",    r64:100,  r32:1,    s16:0,    e8:0,    f4:0,    cp:0,    win:0    },
+  { name:"Ohio St.",       seed:"8",   region:"East",    r64:100,  r32:68.2, s16:18.8, e8:9.3,  f4:4.8,  cp:1.9,  win:0.7  },
+  { name:"TCU",            seed:"9",   region:"East",    r64:100,  r32:31.8, s16:5.3,  e8:1.8,  f4:0.6,  cp:0.2,  win:0    },
+  { name:"St. John's",     seed:"5",   region:"East",    r64:100,  r32:81.1, s16:46.8, e8:18.2, f4:10.5, cp:4.5,  win:1.7  },
+  { name:"Northern Iowa",  seed:"12",  region:"East",    r64:100,  r32:18.9, s16:5.4,  e8:0.8,  f4:0.2,  cp:0.1,  win:0    },
+  { name:"Kansas",         seed:"4",   region:"East",    r64:100,  r32:88.1, s16:45.7, e8:14.6, f4:7.4,  cp:2.7,  win:1    },
+  { name:"Cal Baptist",    seed:"13",  region:"East",    r64:100,  r32:12,   s16:2.1,  e8:0.1,  f4:0,    cp:0,    win:0    },
+  { name:"Louisville",     seed:"6",   region:"East",    r64:100,  r32:69.2, s16:35.9, e8:18.2, f4:6.6,  cp:2.8,  win:1.1  },
+  { name:"South Florida",  seed:"11",  region:"East",    r64:100,  r32:30.8, s16:10.6, e8:3.4,  f4:0.7,  cp:0.1,  win:0    },
+  { name:"Michigan St.",   seed:"3",   region:"East",    r64:100,  r32:91.2, s16:52.2, e8:25.4, f4:8.5,  cp:3.2,  win:1.1  },
+  { name:"N. Dakota St.",  seed:"14",  region:"East",    r64:100,  r32:8.8,  s16:1.3,  e8:0.2,  f4:0,    cp:0,    win:0    },
+  { name:"UCLA",           seed:"7",   region:"East",    r64:100,  r32:70.6, s16:29.8, e8:14,   f4:4.2,  cp:1.3,  win:0.4  },
+  { name:"UCF",            seed:"10",  region:"East",    r64:100,  r32:29.4, s16:7.5,  e8:2.2,  f4:0.3,  cp:0.1,  win:0    },
+  { name:"UConn",          seed:"2",   region:"East",    r64:100,  r32:89.5, s16:60.3, e8:36.3, f4:15.2, cp:6.6,  win:2.8  },
+  { name:"Furman",         seed:"15",  region:"East",    r64:100,  r32:10.5, s16:2.3,  e8:0.4,  f4:0,    cp:0,    win:0    },
+  // WEST
+  { name:"Arizona",        seed:"1",   region:"West",    r64:100,  r32:99,   s16:89.9, e8:74,   f4:54.5, cp:32.8, win:18.8 },
+  { name:"LIU",            seed:"16",  region:"West",    r64:100,  r32:1,    s16:0.1,  e8:0,    f4:0,    cp:0,    win:0    },
+  { name:"Villanova",      seed:"8",   region:"West",    r64:100,  r32:33.9, s16:2.3,  e8:0.7,  f4:0.2,  cp:0,    win:0    },
+  { name:"Utah St.",       seed:"9",   region:"West",    r64:100,  r32:66.1, s16:7.7,  e8:3.2,  f4:1.1,  cp:0.3,  win:0.1  },
+  { name:"Wisconsin",      seed:"5",   region:"West",    r64:100,  r32:78.6, s16:43.5, e8:10.7, f4:4.9,  cp:1.9,  win:0.7  },
+  { name:"High Point",     seed:"12",  region:"West",    r64:100,  r32:21.4, s16:5.9,  e8:0.6,  f4:0.1,  cp:0,    win:0    },
+  { name:"Arkansas",       seed:"4",   region:"West",    r64:100,  r32:93,   s16:49.7, e8:10.8, f4:4.6,  cp:1.5,  win:0.5  },
+  { name:"Hawaii",         seed:"13",  region:"West",    r64:100,  r32:7,    s16:0.8,  e8:0,    f4:0,    cp:0,    win:0    },
+  { name:"BYU",            seed:"6",   region:"West",    r64:100,  r32:46.9, s16:12,   e8:3.2,  f4:0.5,  cp:0.1,  win:0    },
+  { name:"Texas",          seed:"11a", region:"West",    r64:43.2, r32:22.1, s16:6.1,  e8:1.7,  f4:0.3,  cp:0.1,  win:0,   ff:true },
+  { name:"NC State",       seed:"11b", region:"West",    r64:56.8, r32:31,   s16:9.1,  e8:2.7,  f4:0.5,  cp:0.1,  win:0,   ff:true },
+  { name:"Gonzaga",        seed:"3",   region:"West",    r64:100,  r32:97,   s16:72.6, e8:36.8, f4:13.3, cp:5.4,  win:2.3  },
+  { name:"Kennesaw St.",   seed:"14",  region:"West",    r64:100,  r32:3,    s16:0.3,  e8:0,    f4:0,    cp:0,    win:0    },
+  { name:"U Miami (FL)",   seed:"7",   region:"West",    r64:100,  r32:53.7, s16:13.8, e8:5.6,  f4:1.2,  cp:0.4,  win:0.1  },
+  { name:"Missouri",       seed:"10",  region:"West",    r64:100,  r32:46.3, s16:11.1, e8:3.9,  f4:0.8,  cp:0.2,  win:0    },
+  { name:"Purdue",         seed:"2",   region:"West",    r64:100,  r32:97.8, s16:74.9, e8:46.2, f4:18,   cp:8.7,  win:4.1  },
+  { name:"Queens",         seed:"15",  region:"West",    r64:100,  r32:2.2,  s16:0.2,  e8:0,    f4:0,    cp:0,    win:0    },
+  // SOUTH
+  { name:"Florida",        seed:"1",   region:"South",   r64:100,  r32:99.1, s16:85,   e8:60.5, f4:33.7, cp:19,   win:9.9  },
+  { name:"Prairie View",   seed:"16a", region:"South",   r64:46.1, r32:0.4,  s16:0,    e8:0,    f4:0,    cp:0,    win:0,   ff:true },
+  { name:"Lehigh",         seed:"16b", region:"South",   r64:53.9, r32:0.5,  s16:0,    e8:0,    f4:0,    cp:0,    win:0,   ff:true },
+  { name:"Clemson",        seed:"8",   region:"South",   r64:100,  r32:34.8, s16:3.8,  e8:1.2,  f4:0.2,  cp:0.1,  win:0    },
+  { name:"Iowa",           seed:"9",   region:"South",   r64:100,  r32:65.2, s16:11.1, e8:4.4,  f4:1.2,  cp:0.4,  win:0.1  },
+  { name:"Vanderbilt",     seed:"5",   region:"South",   r64:100,  r32:84,   s16:51.4, e8:19.8, f4:8,    cp:3.5,  win:1.4  },
+  { name:"McNeese",        seed:"12",  region:"South",   r64:100,  r32:16,   s16:4.8,  e8:0.7,  f4:0.1,  cp:0,    win:0    },
+  { name:"Nebraska",       seed:"4",   region:"South",   r64:100,  r32:91.4, s16:42.9, e8:13.3, f4:4.5,  cp:1.7,  win:0.5  },
+  { name:"Troy",           seed:"13",  region:"South",   r64:100,  r32:8.6,  s16:0.9,  e8:0.1,  f4:0,    cp:0,    win:0    },
+  { name:"North Carolina", seed:"6",   region:"South",   r64:100,  r32:45.6, s16:7.2,  e8:1.3,  f4:0.3,  cp:0.1,  win:0    },
+  { name:"VCU",            seed:"11",  region:"South",   r64:100,  r32:54.4, s16:9.6,  e8:2,    f4:0.4,  cp:0.1,  win:0    },
+  { name:"Illinois",       seed:"3",   region:"South",   r64:100,  r32:98.1, s16:82.9, e8:42.5, f4:22.3, cp:11.8, win:5.9  },
+  { name:"Penn",           seed:"14",  region:"South",   r64:100,  r32:1.9,  s16:0.2,  e8:0,    f4:0,    cp:0,    win:0    },
+  { name:"Saint Mary's",   seed:"7",   region:"South",   r64:100,  r32:58.8, s16:16,   e8:5.4,  f4:1.7,  cp:0.5,  win:0.1  },
+  { name:"Texas A&M",      seed:"10",  region:"South",   r64:100,  r32:41.2, s16:8.5,  e8:2.4,  f4:0.6,  cp:0.1,  win:0    },
+  { name:"Houston",        seed:"2",   region:"South",   r64:100,  r32:96.7, s16:75.1, e8:46.4, f4:27,   cp:13.5, win:6.3  },
+  { name:"Idaho",          seed:"15",  region:"South",   r64:100,  r32:3.3,  s16:0.4,  e8:0,    f4:0,    cp:0,    win:0    },
+  // MIDWEST
+  { name:"Michigan",       seed:"1",   region:"Midwest", r64:100,  r32:95.4, s16:80.3, e8:61.1, f4:39.1, cp:22.3, win:12.4 },
+  { name:"UMBC",           seed:"16a", region:"Midwest", r64:39.3, r32:1.4,  s16:0.3,  e8:0,    f4:0,    cp:0,    win:0,   ff:true },
+  { name:"Howard",         seed:"16b", region:"Midwest", r64:60.7, r32:3.1,  s16:0.7,  e8:0.1,  f4:0,    cp:0,    win:0,   ff:true },
+  { name:"Georgia",        seed:"8",   region:"Midwest", r64:100,  r32:57.4, s16:11.5, e8:4.6,  f4:1.4,  cp:0.3,  win:0.1  },
+  { name:"Saint Louis",    seed:"9",   region:"Midwest", r64:100,  r32:42.6, s16:7.2,  e8:2.7,  f4:0.7,  cp:0.1,  win:0    },
+  { name:"Texas Tech",     seed:"5",   region:"Midwest", r64:100,  r32:63.4, s16:16.9, e8:3.2,  f4:0.8,  cp:0.2,  win:0    },
+  { name:"Akron",          seed:"12",  region:"Midwest", r64:100,  r32:36.6, s16:6.7,  e8:0.9,  f4:0.2,  cp:0,    win:0    },
+  { name:"Alabama",        seed:"4",   region:"Midwest", r64:100,  r32:90,   s16:72.7, e8:27,   f4:12.2, cp:4.8,  win:1.9  },
+  { name:"Hofstra",        seed:"13",  region:"Midwest", r64:100,  r32:10,   s16:3.7,  e8:0.4,  f4:0.1,  cp:0,    win:0    },
+  { name:"Tennessee",      seed:"6",   region:"Midwest", r64:100,  r32:81,   s16:39.8, e8:15.4, f4:5.8,  cp:2.2,  win:0.8  },
+  { name:"Miami U. (OH)",  seed:"11a", region:"Midwest", r64:29.2, r32:2.7,  s16:0.3,  e8:0,    f4:0,    cp:0,    win:0,   ff:true },
+  { name:"SMU",            seed:"11b", region:"Midwest", r64:70.8, r32:16.3, s16:4.6,  e8:1,    f4:0.2,  cp:0.1,  win:0,   ff:true },
+  { name:"Virginia",       seed:"3",   region:"Midwest", r64:100,  r32:94.3, s16:54.7, e8:21.5, f4:8.3,  cp:3.2,  win:1.2  },
+  { name:"Wright St.",     seed:"14",  region:"Midwest", r64:100,  r32:5.7,  s16:0.6,  e8:0,    f4:0,    cp:0,    win:0    },
+  { name:"Kentucky",       seed:"7",   region:"Midwest", r64:100,  r32:65.8, s16:20,   e8:9.6,  f4:3.3,  cp:1.2,  win:0.4  },
+  { name:"Santa Clara",    seed:"10",  region:"Midwest", r64:100,  r32:34.2, s16:6.8,  e8:2.3,  f4:0.6,  cp:0.1,  win:0    },
+  { name:"Iowa St.",       seed:"2",   region:"Midwest", r64:100,  r32:97.4, s16:73,   e8:50.1, f4:27.4, cp:14.2, win:7.3  },
+  { name:"Tennessee St.",  seed:"15",  region:"Midwest", r64:100,  r32:2.6,  s16:0.2,  e8:0,    f4:0,    cp:0,    win:0    },
+];
+
+const DAYS = [
+  { num:1,  label:"R64 Day 1", date:"Thu Mar 19", round:"r64", regions:["East","Midwest"]                  },
+  { num:2,  label:"R64 Day 2", date:"Fri Mar 20", round:"r64", regions:["South","West"]                    },
+  { num:3,  label:"R32 Day 1", date:"Sat Mar 21", round:"r32", regions:["East","Midwest"]                  },
+  { num:4,  label:"R32 Day 2", date:"Sun Mar 22", round:"r32", regions:["South","West"]                    },
+  { num:5,  label:"S16 Day 1", date:"Thu Mar 26", round:"s16", regions:["East","Midwest"]                  },
+  { num:6,  label:"S16 Day 2", date:"Fri Mar 27", round:"s16", regions:["South","West"]                    },
+  { num:7,  label:"E8 Day 1",  date:"Sat Mar 28", round:"e8",  regions:["East","Midwest"]                  },
+  { num:8,  label:"E8 Day 2",  date:"Sun Mar 29", round:"e8",  regions:["South","West"]                    },
+  { num:9,  label:"Final Four",date:"Sat Apr 4",  round:"f4",  regions:["East","West","South","Midwest"]   },
+  { num:10, label:"Champ.",    date:"Mon Apr 6",  round:"ncg", regions:["East","West","South","Midwest"]   },
+];
+
+const ROUND_ORDER = ["r64","r32","s16","e8","f4","ncg"];
+const ROUND_FIELD = { r64:"r32", r32:"s16", s16:"e8", e8:"f4", f4:"cp", ncg:"win" };
+const ROUND_NEXT  = { r64:"r32", r32:"s16", s16:"e8", e8:"f4", f4:"ncg", ncg:null };
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const DEFAULT_STATE = {
+  numEntries: 3,
+  entryAlive: [true, true, true],
+  picks: {},
+  eliminated: [],      // manual overrides only
+  currentDay: 1,
+  sortCol: "composite",
+  sortDir: "desc",
+};
+
+// Live eliminations fetched from ESPN (not persisted, re-fetched on load)
+let liveEliminated = [];
+let lastSyncTime = null;
+
+// All tournament dates to check
+const TOURNEY_DATES = [
+  '20260317','20260318',                          // First Four
+  '20260319','20260320',                          // R64
+  '20260321','20260322',                          // R32
+  '20260326','20260327',                          // S16
+  '20260328','20260329',                          // E8
+  '20260404',                                     // F4
+  '20260406',                                     // NCG
+];
+
+// Map ESPN short/display names → our team names
+const ESPN_MAP = {
+  "Duke":"Duke", "Siena":"Siena", "Ohio St":"Ohio St.", "TCU":"TCU",
+  "St. John's":"St. John's", "St. Johns":"St. John's", "Northern Iowa":"Northern Iowa",
+  "Kansas":"Kansas", "Cal Baptist":"Cal Baptist", "California Baptist":"Cal Baptist",
+  "Louisville":"Louisville", "South Florida":"South Florida",
+  "Michigan St":"Michigan St.", "Michigan State":"Michigan St.",
+  "N. Dakota St.":"N. Dakota St.", "North Dakota St":"N. Dakota St.", "North Dakota State":"N. Dakota St.",
+  "UCLA":"UCLA", "UCF":"UCF", "Connecticut":"UConn", "UConn":"UConn", "Furman":"Furman",
+  "Arizona":"Arizona", "LIU":"LIU", "Villanova":"Villanova",
+  "Utah St":"Utah St.", "Utah State":"Utah St.",
+  "Wisconsin":"Wisconsin", "High Point":"High Point",
+  "Arkansas":"Arkansas", "Hawaii":"Hawaii", "BYU":"BYU",
+  "Texas":"Texas", "NC State":"NC State",
+  "Gonzaga":"Gonzaga", "Kennesaw St":"Kennesaw St.", "Kennesaw State":"Kennesaw St.",
+  "Miami":"U Miami (FL)", "Miami (FL)":"U Miami (FL)",
+  "Missouri":"Missouri", "Purdue":"Purdue", "Queens":"Queens",
+  "Florida":"Florida", "Prairie View":"Prairie View", "Prairie View A&M":"Prairie View",
+  "Lehigh":"Lehigh", "Clemson":"Clemson", "Iowa":"Iowa",
+  "Vanderbilt":"Vanderbilt", "McNeese":"McNeese", "McNeese St":"McNeese", "McNeese State":"McNeese",
+  "Nebraska":"Nebraska", "Troy":"Troy", "North Carolina":"North Carolina",
+  "VCU":"VCU", "Illinois":"Illinois", "Penn":"Penn",
+  "Saint Mary's":"Saint Mary's", "Saint Mary's (CA)":"Saint Mary's",
+  "Texas A&M":"Texas A&M", "Houston":"Houston", "Idaho":"Idaho",
+  "Michigan":"Michigan", "UMBC":"UMBC", "Howard":"Howard",
+  "Georgia":"Georgia", "Saint Louis":"Saint Louis", "St. Louis":"Saint Louis",
+  "Texas Tech":"Texas Tech", "Akron":"Akron", "Alabama":"Alabama",
+  "Hofstra":"Hofstra", "Tennessee":"Tennessee",
+  "Miami (OH)":"Miami U. (OH)", "Miami OH":"Miami U. (OH)",
+  "SMU":"SMU", "Virginia":"Virginia",
+  "Wright St":"Wright St.", "Wright State":"Wright St.",
+  "Kentucky":"Kentucky", "Santa Clara":"Santa Clara",
+  "Iowa St":"Iowa St.", "Iowa State":"Iowa St.",
+  "Tennessee St":"Tennessee St.", "Tennessee State":"Tennessee St.",
+};
+
+function resolveESPNName(team) {
+  if (!team) return null;
+  const candidates = [
+    team.shortDisplayName, team.displayName, team.name, team.abbreviation
+  ];
+  for (const c of candidates) {
+    if (!c) continue;
+    if (ESPN_MAP[c]) return ESPN_MAP[c];
+    // try trimming "State" suffix variants
+    const trimmed = c.replace(/ Wildcats| Bulldogs| Tigers| Bears| Panthers| Eagles| Hawks| Owls| Rams| Lions| Trojans| Wolves| Aggies| Cowboys| Mountaineers| Gators| Tar Heels| Crimson Tide| Longhorns| Bearcats| Hurricanes| Cougars| Mustangs| Cavaliers| Zips| Billikens| Gaels| Paladins| RedHawks| Bison| Saints| Retrievers| Pirates| Royals| Vandals| Broncos| Cyclones| Boilermakers| Badgers| Bruins| Ducks| Knights| Huskies| Cardinals| Jayhawks| Hoyas| Friars| Red Storm| Fighting Illini/i, '').trim();
+    if (ESPN_MAP[trimmed]) return ESPN_MAP[trimmed];
+  }
+  return null;
+}
+
+async function fetchLiveResults() {
+  const syncBtn = document.getElementById("syncBtn");
+  const syncLabel = document.getElementById("syncLabel");
+  if (syncBtn) syncBtn.textContent = "Syncing…";
+
+  const todayStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const datesToFetch = TOURNEY_DATES.filter(d => d <= todayStr);
+
+  const found = new Set();
+  await Promise.all(datesToFetch.map(async date => {
+    try {
+      const res = await fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${date}&limit=50`,
+        { cache: "no-store" }
+      );
+      const data = await res.json();
+      for (const event of (data.events || [])) {
+        const comp = event.competitions?.[0];
+        if (!comp?.status?.type?.completed) continue;
+        const loser = comp.competitors?.find(c => c.winner === false);
+        if (!loser) continue;
+        const name = resolveESPNName(loser.team);
+        if (name) found.add(name);
+      }
+    } catch(e) { /* skip failed date */ }
+  }));
+
+  liveEliminated = [...found];
+  lastSyncTime = new Date();
+  if (syncBtn) syncBtn.textContent = "🔄 Sync";
+  if (syncLabel) syncLabel.textContent = `Synced ${lastSyncTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  renderAll();
+}
+let state = { ...DEFAULT_STATE };
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem("ncaa26_v2"));
+    if (s) state = { ...DEFAULT_STATE, ...s };
+    // ensure picks arrays have right length
+    for (const d of DAYS) {
+      const k = String(d.num);
+      if (!state.picks[k]) state.picks[k] = Array(state.numEntries).fill(null);
+      else while (state.picks[k].length < state.numEntries) state.picks[k].push(null);
+    }
+  } catch(e) {}
+}
+function saveState() {
+  localStorage.setItem("ncaa26_v2", JSON.stringify(state));
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function getPicksForDay(dayNum) {
+  const k = String(dayNum);
+  if (!state.picks[k]) state.picks[k] = Array(state.numEntries).fill(null);
+  return state.picks[k];
+}
+
+// Teams used by entry i (across all days)
+function usedByEntry(i) {
+  return Object.values(state.picks).map(arr => arr[i]).filter(Boolean);
+}
+
+// How many alive entries still need a pick for this day
+function openSlotsForDay(dayNum) {
+  const picks = getPicksForDay(dayNum);
+  return state.entryAlive.filter((alive, i) => alive && picks[i] === null).length;
+}
+
+// Which entries can still pick this team on this day?
+function availableEntriesForTeam(teamName, dayNum) {
+  const picks = getPicksForDay(dayNum);
+  return state.entryAlive
+    .map((alive, i) => ({ i, alive, hasPick: picks[i] !== null, usedTeam: usedByEntry(i).includes(teamName) }))
+    .filter(e => e.alive && !e.hasPick && !e.usedTeam)
+    .map(e => e.i);
+}
+
+function isEligible(t, day) {
+  if (!day.regions.includes(t.region)) return false;
+  const prob = t[ROUND_FIELD[day.round]] || 0;
+  return prob > 0;
+}
+
+function isTournamentOut(teamName) {
+  return liveEliminated.includes(teamName) || state.eliminated.includes(teamName);
+}
+
+// ── SCORING ───────────────────────────────────────────────────────────────────
+function winProb(t, round) {
+  const base = round === "r64" ? t.r64 : round === "r32" ? t.r32 : round === "s16" ? t.s16 :
+               round === "e8"  ? t.e8  : round === "f4"  ? t.f4  : t.cp;
+  if (!base) return 0;
+  return (t[ROUND_FIELD[round]] || 0) / base * 100;
+}
+
+function diff(t, round) {
+  const curr = t[ROUND_FIELD[round]] || 0;
+  const next = ROUND_NEXT[round] ? (t[ROUND_FIELD[ROUND_NEXT[round]]] || 0) : 0;
+  return curr - next;
+}
+
+function futureValue(t, round) {
+  const idx = ROUND_ORDER.indexOf(round);
+  let fv = 0;
+  for (let i = idx + 1; i < ROUND_ORDER.length; i++) {
+    fv += diff(t, ROUND_ORDER[i]) * Math.pow(0.5, i - idx);
+  }
+  return fv;
+}
+
+function composite(t, round) {
+  return diff(t, round) - 0.4 * futureValue(t, round);
+}
+
+function bestRound(t) {
+  let best = "r64", bestVal = -99;
+  for (const r of ROUND_ORDER) {
+    const d = diff(t, r);
+    if (d > bestVal) { bestVal = d; best = r; }
+  }
+  return best.toUpperCase();
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function setDay(n) {
+  state.currentDay = n; saveState(); renderAll();
+}
+
+function pickTeam(teamName) {
+  const day = DAYS[state.currentDay - 1];
+  const t = TEAMS.find(x => x.name === teamName);
+  if (!t || !isEligible(t, day) || isTournamentOut(teamName)) return;
+
+  const available = availableEntriesForTeam(teamName, state.currentDay);
+  if (available.length === 0) {
+    alert(`No available entry slots for ${teamName} on this day.`);
+    return;
+  }
+  const picks = [...getPicksForDay(state.currentDay)];
+  picks[available[0]] = teamName;
+  state.picks[String(state.currentDay)] = picks;
+  saveState(); renderAll();
+}
+
+function removePickFromSlot(dayNum, entryIdx, e) {
+  if (e) e.stopPropagation();
+  const picks = [...getPicksForDay(dayNum)];
+  picks[entryIdx] = null;
+  state.picks[String(dayNum)] = picks;
+  saveState(); renderAll();
+}
+
+function toggleElim(teamName) {
+  if (state.eliminated.includes(teamName))
+    state.eliminated = state.eliminated.filter(x => x !== teamName);
+  else
+    state.eliminated.push(teamName);
+  saveState(); renderAll();
+}
+
+function toggleEntryAlive(i) {
+  state.entryAlive[i] = !state.entryAlive[i];
+  saveState(); renderAll();
+}
+
+function resetAll() {
+  if (!confirm("Reset all picks and eliminations?")) return;
+  state.picks = {};
+  state.eliminated = [];
+  state.entryAlive = Array(state.numEntries).fill(true);
+  for (const d of DAYS) state.picks[String(d.num)] = Array(state.numEntries).fill(null);
+  saveState(); renderAll();
+}
+
+function sortBy(col) {
+  if (state.sortCol === col) state.sortDir = state.sortDir === "desc" ? "asc" : "desc";
+  else { state.sortCol = col; state.sortDir = "desc"; }
+  saveState(); renderTable();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function pctClass(v) { return v >= 50 ? "pct-hi" : v >= 15 ? "pct-med" : "pct-lo"; }
+function diffClass(v) { return v >= 30 ? "diff-hi" : v >= 10 ? "diff-ok" : "diff-lo"; }
+function fmt(v) { return v > 0 ? v.toFixed(1)+"%" : "—"; }
+
+const REGION_COLORS = { East:"#1d4ed8", West:"#b45309", South:"#15803d", Midwest:"#7c3aed" };
+
+function renderEntries() {
+  const alive = state.entryAlive.filter(Boolean).length;
+  document.getElementById("entryBadges").innerHTML =
+    state.entryAlive.map((alive, i) =>
+      `<span class="entry-badge ${alive ? 'alive' : 'dead'}" onclick="toggleEntryAlive(${i})" title="Click to toggle">
+        <span class="entry-dot"></span>Entry ${i+1}
+      </span>`
+    ).join(" ");
+  document.getElementById("entriesInfo").textContent =
+    `${alive} active · ${alive} pick${alive !== 1 ? 's' : ''} per day`;
+}
+
+function renderDayCards() {
+  document.getElementById("dayCards").innerHTML = DAYS.map(d => {
+    const picks = getPicksForDay(d.num);
+    const isActive = d.num === state.currentDay;
+    const slots = state.entryAlive.map((alive, i) => {
+      const team = picks[i];
+      if (!alive) return `<div class="pick-slot dead"><span class="ps-entry">${i+1}</span><span class="ps-team">eliminated</span></div>`;
+      if (team) return `<div class="pick-slot">
+        <span class="ps-entry">${i+1}</span>
+        <span class="ps-team">${team}</span>
+        <span class="ps-remove" onclick="removePickFromSlot(${d.num},${i},event)" title="Remove">×</span>
+      </div>`;
+      return `<div class="pick-slot empty"><span class="ps-entry">${i+1}</span><span class="ps-team">—</span></div>`;
+    }).join("");
+    return `<div class="day-card ${isActive ? 'active' : ''}" onclick="setDay(${d.num})">
+      <div class="dc-top">
+        <span class="dc-label">${d.label}</span>
+        <span class="dc-date">${d.date}</span>
+      </div>
+      <div class="dc-slots">${slots}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderPicks() {
+  const day = DAYS[state.currentDay - 1];
+  const openSlots = openSlotsForDay(state.currentDay);
+  document.getElementById("picksTitle").textContent =
+    `Top Picks — ${day.label} · ${day.date} · ${openSlots} slot${openSlots !== 1 ? 's' : ''} remaining`;
+
+  // Get eligible, available teams (can be used by at least one entry)
+  let eligible = TEAMS.filter(t => {
+    if (isTournamentOut(t.name)) return false;
+    if (!isEligible(t, day)) return false;
+    return availableEntriesForTeam(t.name, state.currentDay).length > 0;
+  });
+
+  eligible.forEach(t => { t._comp = composite(t, day.round); });
+  eligible.sort((a,b) => b._comp - a._comp);
+
+  const medals = ["🥇","🥈","🥉","④","⑤","⑥"];
+  document.getElementById("picksPanel").innerHTML = eligible.slice(0, 6).map((t, i) => {
+    const wp = winProb(t, day.round);
+    const d  = diff(t, day.round);
+    const fv = futureValue(t, day.round);
+    const c  = composite(t, day.round);
+    const availEntries = availableEntriesForTeam(t.name, state.currentDay);
+    const alreadyPickedEntries = getPicksForDay(state.currentDay)
+      .map((p, idx) => p === t.name ? idx : -1).filter(x => x >= 0);
+
+    let bottomEl = "";
+    if (alreadyPickedEntries.length > 0) {
+      bottomEl += `<div class="already-picked">✓ E${alreadyPickedEntries.map(x=>x+1).join(", ")} picked</div>`;
+    }
+    if (availEntries.length > 0) {
+      bottomEl += `<button class="pick-btn" style="margin-top:4px" onclick="pickTeam('${t.name}')">+ Pick for Entry ${availEntries[0]+1}</button>`;
+    } else if (alreadyPickedEntries.length === 0) {
+      bottomEl += `<button class="pick-btn" disabled>${openSlots > 0 ? 'Used by all entries' : 'Day Full'}</button>`;
+    }
+
+    return `<div class="pick-card rank-${i+1}">
+      <div class="pc-rank">${medals[i]}</div>
+      <div class="pc-name">${t.name}${t.ff ? ' <span class="ff-badge">FF</span>' : ''}</div>
+      <div class="pc-meta">${t.seed} · ${t.region}</div>
+      <div class="pc-scores">
+        <div class="score-box"><div class="sb-label">Win Prob</div><div class="sb-val win-prob">${wp.toFixed(1)}%</div></div>
+        <div class="score-box"><div class="sb-label">Diff</div><div class="sb-val diff-val">${d.toFixed(1)}%</div></div>
+        <div class="score-box"><div class="sb-label">Composite</div><div class="sb-val composite-val">${c.toFixed(1)}%</div></div>
+        <div class="score-box"><div class="sb-label">Future Cost</div><div class="sb-val future-val">${fv.toFixed(1)}%</div></div>
+      </div>
+      ${bottomEl}
+    </div>`;
+  }).join("") || `<div style="color:#555;font-size:0.85rem;padding:8px">No eligible teams for this day.</div>`;
+}
+
+function renderTable() {
+  const day = DAYS[state.currentDay - 1];
+  const regionFilter = document.getElementById("filterRegion").value;
+  const dayFilter    = document.getElementById("filterDay").value;
+  const search       = document.getElementById("searchTeam").value.toLowerCase();
+
+  let data = TEAMS.filter(t => {
+    if (regionFilter && t.region !== regionFilter) return false;
+    if (dayFilter === "today" && !isEligible(t, day)) return false;
+    if (search && !t.name.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  data = data.map(t => ({
+    ...t,
+    _wp:  winProb(t, day.round),
+    _diff: diff(t, day.round),
+    _fv:  futureValue(t, day.round),
+    _comp: composite(t, day.round),
+    _br:  bestRound(t),
+    _todayPick: getPicksForDay(state.currentDay).findIndex(p => p === t.name),
+    _availEntries: availableEntriesForTeam(t.name, state.currentDay),
+    _eligible: isEligible(t, day),
+    _out: isTournamentOut(t.name),
+  }));
+
+  const dir = state.sortDir === "asc" ? 1 : -1;
+  const colFns = {
+    name: t=>t.name, seed: t=>parseInt(t.seed),
+    r32:t=>t.r32, s16:t=>t.s16, e8:t=>t.e8, f4:t=>t.f4, cp:t=>t.cp, win:t=>t.win,
+    wp:t=>t._wp, diff:t=>t._diff, fv:t=>t._fv, comp:t=>t._comp,
+  };
+  const fn = colFns[state.sortCol] || (t=>t._comp);
+  data.sort((a,b) => dir*(fn(a)>fn(b)?1:-1));
+
+  const cols = [
+    {k:"name",label:"Team"},{k:"seed",label:"Seed"},
+    {k:"r32",label:"R32"},{k:"s16",label:"S16"},{k:"e8",label:"E8"},
+    {k:"f4",label:"F4"},{k:"cp",label:"CP"},{k:"win",label:"WIN"},
+    {k:"wp",label:"Win Prob"},
+    {k:"diff",  label:"Diff",      tip:"P(win this round game) × P(lose next round game). High = great pick for this round, low future loss. e.g. R64 Diff = R32% − S16%."},
+    {k:"fv",    label:"Future",    tip:"Discounted sum of this team's value in all future rounds (0.5× per round ahead). High = dangerous to use now, they're more valuable later."},
+    {k:"comp",  label:"Composite", tip:"Diff − 0.4 × Future Cost. The primary sort key: balances picking a likely winner today against preserving optionality for harder future rounds."},
+    {k:"_br",label:"Best Rnd"},
+    {k:"_entries",label:"Entries"},{k:"_action",label:"Action"},
+  ];
+
+  document.getElementById("tableHead").innerHTML =
+    `<tr>${cols.map(c => {
+      const isSort = state.sortCol === c.k;
+      const tip = c.tip ? ` title="${c.tip}" style="cursor:help;border-bottom:1px dotted #555"` : "";
+      return `<th onclick="sortBy('${c.k}')" class="${isSort?"sort-"+state.sortDir:""}"${tip}>${c.label}${c.tip ? ' ?' : ''}</th>`;
+    }).join("")}</tr>`;
+
+  document.getElementById("tableBody").innerHTML = data.map(t => {
+    const rc = REGION_COLORS[t.region] || "#555";
+    const pickedSlot = t._todayPick; // -1 or index
+    const pickedByAll = state.entryAlive.every((alive, i) => !alive || usedByEntry(i).includes(t.name));
+
+    // Entry availability tags
+    const entryTags = state.entryAlive.map((alive, i) => {
+      if (!alive) return `<span class="entry-tag et-na">E${i+1}✗</span>`;
+      const used = usedByEntry(i).includes(t.name);
+      const todayPick = getPicksForDay(state.currentDay)[i] === t.name;
+      if (todayPick) return `<span class="entry-tag et-used">E${i+1}✓</span>`;
+      if (used) return `<span class="entry-tag et-na">E${i+1}used</span>`;
+      return `<span class="entry-tag et-available">E${i+1}free</span>`;
+    }).join("");
+
+    // Action buttons
+    let action = "";
+    if (t._out) {
+      const isLive = liveEliminated.includes(t.name);
+      action = `<span class="elim-label">${isLive ? '📡 ELIM' : '✗ ELIM'}</span>
+                ${!isLive ? `<button class="tbl-reset-btn" onclick="toggleElim('${t.name}')">↩</button>` : ''}`;
+    } else {
+      const openSlots = openSlotsForDay(state.currentDay);
+      const canPick = t._eligible && t._availEntries.length > 0 && openSlots > 0;
+      action = canPick
+        ? `<button class="tbl-pick-btn" onclick="pickTeam('${t.name}')">Pick</button>`
+        : `<button class="tbl-pick-btn" disabled>—</button>`;
+    }
+
+    return `<tr class="${t._out ? 'tournament-out' : pickedSlot >= 0 ? 'picked-today' : ''}">
+      <td style="font-weight:600">${t.name}${t.ff ? ' <span class="ff-badge">FF</span>' : ''}</td>
+      <td>
+        <span class="seed-badge" style="background:${rc}22;color:${rc};border:1px solid ${rc}44">${t.seed}</span>
+        <span class="region-tag">${t.region}</span>
+      </td>
+      <td class="${pctClass(t.r32)}">${fmt(t.r32)}</td>
+      <td class="${pctClass(t.s16)}">${fmt(t.s16)}</td>
+      <td class="${pctClass(t.e8)}">${fmt(t.e8)}</td>
+      <td class="${pctClass(t.f4)}">${fmt(t.f4)}</td>
+      <td class="${pctClass(t.cp)}">${fmt(t.cp)}</td>
+      <td class="${pctClass(t.win)}">${fmt(t.win)}</td>
+      <td class="win-prob" style="font-weight:700">${t._wp.toFixed(1)}%</td>
+      <td class="${diffClass(t._diff)} diff-col">${t._diff.toFixed(1)}%</td>
+      <td class="future-val">${t._fv.toFixed(1)}%</td>
+      <td class="composite-val" style="font-weight:700">${t._comp.toFixed(1)}%</td>
+      <td><span class="best-badge">${t._br}</span></td>
+      <td><div class="entry-tags">${entryTags}</div></td>
+      <td>${action}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderAll() {
+  renderEntries();
+  renderDayCards();
+  renderPicks();
+  renderTable();
+}
+
+loadState();
+renderAll();
+fetchLiveResults();
+setInterval(fetchLiveResults, 30 * 60 * 1000); // re-sync every 30 min
+</script>
+</body>
+</html>
