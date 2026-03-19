@@ -321,7 +321,7 @@ const DEFAULT_STATE = {
 // Live data fetched from ESPN (not persisted, re-fetched on load)
 let liveEliminated = [];
 let teamDayMap = {};   // teamName -> dayNum, built from ESPN schedule
-let espnPickPct = {};  // teamName -> % of TC brackets picking them to win their game
+let espnPcts = {};  // teamName -> {r32, s16, e8, f4, cp, win} TC pick percentages
 let lastSyncTime = null;
 
 // Tournament date → survivor day number (First Four dates omitted — not pick days)
@@ -352,11 +352,11 @@ const ESPN_MAP = {
   "St. John's":"St. John's", "St. Johns":"St. John's", "St John's":"St. John's",
   "Northern Iowa":"Northern Iowa",
   "Kansas":"Kansas",
-  "Cal Baptist":"Cal Baptist", "CA Baptist":"Cal Baptist", "California Baptist":"Cal Baptist",
+  "Cal Baptist":"Cal. Baptist", "CA Baptist":"Cal. Baptist", "California Baptist":"Cal. Baptist",
   "Louisville":"Louisville", "South Florida":"South Florida",
   "Michigan St":"Michigan St.", "Michigan State":"Michigan St.",
-  "N. Dakota St.":"N. Dakota St.", "N Dakota St":"N. Dakota St.",
-  "North Dakota St":"N. Dakota St.", "North Dakota State":"N. Dakota St.",
+  "N. Dakota St.":"North Dakota St.", "N Dakota St":"North Dakota St.",
+  "North Dakota St":"North Dakota St.", "North Dakota State":"North Dakota St.",
   "UCLA":"UCLA", "UCF":"UCF",
   "Connecticut":"UConn", "UConn":"UConn",
   "Furman":"Furman",
@@ -380,7 +380,7 @@ const ESPN_MAP = {
   "McNeese":"McNeese", "McNeese St":"McNeese", "McNeese State":"McNeese",
   "Nebraska":"Nebraska", "Troy":"Troy", "North Carolina":"North Carolina",
   "VCU":"VCU", "Illinois":"Illinois", "Penn":"Penn",
-  "Saint Mary's":"Saint Mary's", "Saint Mary's (CA)":"Saint Mary's",
+  "Saint Mary's":"Saint Mary's (CA)", "Saint Mary's (CA)":"Saint Mary's (CA)",
   "Texas A&M":"Texas A&M", "Houston":"Houston", "Idaho":"Idaho",
   "Michigan":"Michigan", "UMBC":"UMBC", "Howard":"Howard",
   "Georgia":"Georgia", "Saint Louis":"Saint Louis", "St. Louis":"Saint Louis",
@@ -457,18 +457,23 @@ async function fetchLiveResults() {
 
 async function fetchESPNPickPct() {
   try {
-    const res = await fetch("https://gambit-api.fantasy.espn.com/apis/v1/challenges/tcmen?view=whopickedwhom", { cache: "no-store" });
-    const data = await res.json();
-    const pct = {};
-    for (const prop of (data.propositions || [])) {
-      for (const outcome of (prop.possibleOutcomes || [])) {
-        const cc = outcome.choiceCounters?.[0];
-        if (!cc) continue;
-        const resolved = ESPN_MAP[outcome.name] || outcome.name;
-        pct[resolved] = Math.round(cc.percentage * 1000) / 10;
+    const BASE = "https://gambit-api.fantasy.espn.com/apis/v1/challenges/tcmen?view=whopickedwhom";
+    const PERIOD_KEYS = {1:"r32", 2:"s16", 3:"e8", 4:"f4", 5:"cp", 6:"win"};
+    const pcts = {};
+    await Promise.all(Object.entries(PERIOD_KEYS).map(async ([sp, key]) => {
+      const res = await fetch(`${BASE}&scoringPeriodId=${sp}`, { cache: "no-store" });
+      const data = await res.json();
+      for (const prop of (data.propositions || [])) {
+        for (const outcome of (prop.possibleOutcomes || [])) {
+          const cc = outcome.choiceCounters?.[0];
+          if (!cc) continue;
+          const resolved = ESPN_MAP[outcome.name] || outcome.name;
+          if (!pcts[resolved]) pcts[resolved] = {};
+          pcts[resolved][key] = Math.round(cc.percentage * 1000) / 10;
+        }
       }
-    }
-    espnPickPct = pct;
+    }));
+    espnPcts = pcts;
     renderAll();
   } catch(e) { /* silent fail */ }
 }
@@ -747,7 +752,11 @@ function renderTable() {
   const colFns = {
     name: t=>t.name, seed: t=>parseInt(t.seed),
     r32:t=>t.r32, s16:t=>t.s16, e8:t=>t.e8, f4:t=>t.f4, cp:t=>t.cp, win:t=>t.win,
-    wp:t=>t._wp, tc:t=>(espnPickPct[t.name]||0), diff:t=>t._diff, fv:t=>t._fv, comp:t=>t._comp,
+    wp:t=>t._wp,
+    tc_r32:t=>((espnPcts[t.name]||{}).r32||0), tc_s16:t=>((espnPcts[t.name]||{}).s16||0),
+    tc_e8:t=>((espnPcts[t.name]||{}).e8||0), tc_f4:t=>((espnPcts[t.name]||{}).f4||0),
+    tc_cp:t=>((espnPcts[t.name]||{}).cp||0), tc_win:t=>((espnPcts[t.name]||{}).win||0),
+    diff:t=>t._diff, fv:t=>t._fv, comp:t=>t._comp,
   };
   const fn = colFns[state.sortCol] || (t=>t._comp);
   data.sort((a,b) => dir*(fn(a)>fn(b)?1:-1));
@@ -757,7 +766,12 @@ function renderTable() {
     {k:"r32",label:"R32"},{k:"s16",label:"S16"},{k:"e8",label:"E8"},
     {k:"f4",label:"F4"},{k:"cp",label:"CP"},{k:"win",label:"WIN"},
     {k:"wp",label:"Win Prob"},
-    {k:"tc",    label:"Bracket%",  tip:"% of ESPN Tournament Challenge brackets that picked this team to win their current-round game. Source: ESPN TC public data."},
+    {k:"tc_r32", label:"TC R32%", tip:"ESPN TC: % of brackets that picked this team to advance to the Round of 32 (win R64). Only shown for seeds 1–13."},
+    {k:"tc_s16", label:"TC S16%", tip:"ESPN TC: % of brackets that picked this team to advance to the Sweet 16. Only shown for seeds 1–13."},
+    {k:"tc_e8",  label:"TC E8%",  tip:"ESPN TC: % of brackets that picked this team to advance to the Elite 8. Only shown for seeds 1–13."},
+    {k:"tc_f4",  label:"TC F4%",  tip:"ESPN TC: % of brackets that picked this team to advance to the Final Four. Only shown for seeds 1–13."},
+    {k:"tc_cp",  label:"TC CP%",  tip:"ESPN TC: % of brackets that picked this team to reach the Championship Game. Only shown for seeds 1–13."},
+    {k:"tc_win", label:"TC Win%", tip:"ESPN TC: % of brackets that picked this team to win the Championship. Only shown for seeds 1–13."},
     {k:"diff",  label:"Diff",      tip:"P(win this round game) × P(lose next round game). High = great pick for this round, low future loss. e.g. R64 Diff = R32% − S16%."},
     {k:"fv",    label:"Future",    tip:"Discounted sum of this team's value in all future rounds (0.5× per round ahead). High = dangerous to use now, they're more valuable later."},
     {k:"comp",  label:"Composite", tip:"Diff − 0.4 × Future Cost. The primary sort key: balances picking a likely winner today against preserving optionality for harder future rounds."},
@@ -814,7 +828,11 @@ function renderTable() {
       <td class="${pctClass(t.cp)}">${fmt(t.cp)}</td>
       <td class="${pctClass(t.win)}">${fmt(t.win)}</td>
       <td class="win-prob" style="font-weight:700">${t._wp.toFixed(1)}%</td>
-      <td style="color:#94a3b8">${espnPickPct[t.name] !== undefined ? espnPickPct[t.name].toFixed(1)+'%' : '—'}</td>
+      ${['r32','s16','e8','f4','cp','win'].map(rnd => {
+        const seedNum = parseInt(t.seed);
+        const val = (espnPcts[t.name]||{})[rnd];
+        return `<td style="color:#94a3b8">${seedNum < 14 && val !== undefined ? val.toFixed(1)+'%' : '—'}</td>`;
+      }).join('')}
       <td class="${diffClass(t._diff)} diff-col">${t._diff.toFixed(1)}%</td>
       <td class="future-val">${t._fv.toFixed(1)}%</td>
       <td class="composite-val" style="font-weight:700">${t._comp.toFixed(1)}%</td>
