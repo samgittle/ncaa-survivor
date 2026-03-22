@@ -167,7 +167,7 @@ td { padding: 6px 9px; white-space: nowrap; }
   <div class="header">
     <div>
       <h1>NCAA Survivor 2026</h1>
-      <h2>Silver Bulletin odds &middot; 10 days &middot; 3 entries &middot; <span style="color:#f59e0b" title="Silver Bulletin model timestamp">odds updated Mar 22 18:16Z</span></h2>
+      <h2>Silver Bulletin odds &middot; 10 days &middot; 3 entries &middot; <span style="color:#f59e0b" title="Silver Bulletin model timestamp">odds updated Mar 22 18:21Z</span></h2>
     </div>
     <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
       <span id="syncLabel" style="font-size:0.7rem;color:#555;"></span>
@@ -648,7 +648,11 @@ function renderEntries() {
 }
 
 function renderDayCards() {
-  document.getElementById("dayCards").innerHTML = DAYS.map(d => {
+  const ROUND_ORDER = ["r64","r32","s16","e8","f4","ncg"];
+  const currentRound = (DAYS.find(d => d.num === state.currentDay) || DAYS[0]).round;
+  const currentRoundIdx = ROUND_ORDER.indexOf(currentRound);
+  const visibleDays = DAYS.filter(d => ROUND_ORDER.indexOf(d.round) >= currentRoundIdx);
+  document.getElementById("dayCards").innerHTML = visibleDays.map(d => {
     const picks = getPicksForDay(d.num);
     const isActive = d.num === state.currentDay;
     const slots = state.entryAlive.map((alive, i) => {
