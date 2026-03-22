@@ -167,7 +167,7 @@ td { padding: 6px 9px; white-space: nowrap; }
   <div class="header">
     <div>
       <h1>NCAA Survivor 2026</h1>
-      <h2>Silver Bulletin odds &middot; 10 days &middot; 3 entries &middot; <span style="color:#f59e0b" title="Silver Bulletin model timestamp">odds updated Mar 22 18:09Z</span></h2>
+      <h2>Silver Bulletin odds &middot; 10 days &middot; 3 entries &middot; <span style="color:#f59e0b" title="Silver Bulletin model timestamp">odds updated Mar 22 18:16Z</span></h2>
     </div>
     <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
       <span id="syncLabel" style="font-size:0.7rem;color:#555;"></span>
@@ -311,12 +311,9 @@ const ROUND_NEXT  = { r64:"r32", r32:"s16", s16:"e8", e8:"f4", f4:"ncg", ncg:nul
 const DEFAULT_STATE = {
   numEntries: 3,
   entryAlive: [true, true, true],
-  picks: {
-    "1": ["Vanderbilt", "Arkansas", "Nebraska"],
-    "2": ["UCLA", "UCLA", "Kansas"],
-  },
+  picks: {"1": ["Vanderbilt", "Arkansas", "Nebraska"], "2": ["UCLA", "UCLA", "Kansas"], "3": ["St. John's", "St. John's", "Alabama"]},
   eliminated: [],      // manual overrides only
-  currentDay: 2,
+  currentDay: 1,
   sortCol: "composite",
   sortDir: "desc",
 };
@@ -485,7 +482,15 @@ let state = { ...DEFAULT_STATE };
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem("ncaa26_sam"));
-    if (s) state = { ...DEFAULT_STATE, ...s };
+    if (s) {
+      state = { ...DEFAULT_STATE, ...s };
+      // Merge DEFAULT_STATE picks for any day not yet in saved state
+      for (const [k, v] of Object.entries(DEFAULT_STATE.picks || {})) {
+        if (!state.picks[k] || state.picks[k].every(x => x === null)) {
+          state.picks[k] = [...v];
+        }
+      }
+    }
     // ensure picks arrays have right length
     for (const d of DAYS) {
       const k = String(d.num);
