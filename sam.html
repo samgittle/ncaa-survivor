@@ -949,10 +949,7 @@ function renderBracket() {
   }
 
   function winnerOf(teams, advField) {
-    const valid = teams.filter(Boolean);
-    if (!valid.length) return null;
-    const best = valid.slice().sort((a,b) => b[advField] - a[advField])[0];
-    return best[advField] > 0 ? best : null;
+    return teams.filter(Boolean).find(t => t[advField] === 100) || null;
   }
 
   function isTeamOut(t) {
