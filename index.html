@@ -166,7 +166,59 @@ td { padding: 6px 9px; white-space: nowrap; }
 .ph-pill.dead { background: #1f293766; color: #6b7280; border: 1px solid #37415144; text-decoration: line-through; }
 .ph-pill.empty { color: #3a3d4a; font-style: italic; }
 
-/* Bracket tree */
+/* ── Entry panels (merged picks + top picks) ─────────────────────── */
+.ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-top: 8px; }
+.ep-card { background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 10px; padding: 14px; }
+.ep-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.ep-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+.ep-dot.dead { background: #ef4444; }
+.ep-title { font-size: 0.85rem; font-weight: 700; }
+.ep-mode { font-size: 0.65rem; color: #888; margin-left: auto; }
+.ep-seedsum { font-size: 0.72rem; background: #1c2a1c; border: 1px solid #166534; color: #86efac; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+/* Timeline row */
+.ep-timeline { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.ep-pick-chip { display: flex; flex-direction: column; align-items: center; background: #0f1117; border-radius: 5px; padding: 4px 7px; min-width: 56px; }
+.ep-chip-day { font-size: 0.55rem; color: #4b5563; margin-bottom: 1px; text-transform: uppercase; }
+.ep-chip-team { font-size: 0.65rem; font-weight: 600; color: #86efac; white-space: nowrap; }
+.ep-chip-team.dead { color: #6b7280; text-decoration: line-through; }
+.ep-chip-team.empty { color: #2a2d3a; font-style: italic; }
+.ep-chip-seed { font-size: 0.55rem; color: #555; }
+/* Next picks within panel */
+.ep-next-label { font-size: 0.62rem; color: #4b5563; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.ep-recs { display: flex; flex-direction: column; gap: 4px; }
+.ep-rec { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: #0f1117; border-radius: 5px; cursor: pointer; border: 1px solid transparent; }
+.ep-rec:hover { border-color: #2a2d3a; }
+.ep-rec-medal { font-size: 0.8rem; }
+.ep-rec-name { font-size: 0.75rem; font-weight: 700; flex: 1; }
+.ep-rec-seed { font-size: 0.62rem; color: #888; min-width: 24px; }
+.ep-rec-score { font-size: 0.65rem; color: #f59e0b; min-width: 40px; text-align: right; }
+.ep-rec-win { font-size: 0.65rem; color: #34d399; min-width: 40px; text-align: right; }
+.ep-pick-btn { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; border: none; cursor: pointer; font-weight: 700; background: #1d4ed8; color: #fff; }
+.ep-pick-btn:hover { background: #2563eb; }
+.ep-already { font-size: 0.65rem; color: #86efac; }
+.ep-no-picks { font-size: 0.72rem; color: #555; font-style: italic; padding: 6px 0; }
+/* Conflict warnings */
+.ep-conflicts { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+.ep-conflict { font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; display: flex; align-items: flex-start; gap: 5px; }
+.ep-conflict.danger { background: #450a0a44; border: 1px solid #7f1d1d66; color: #fca5a5; }
+.ep-conflict.warn   { background: #451a0044; border: 1px solid #92400e66; color: #fcd34d; }
+
+/* ── Simple bracket ──────────────────────────────────────────────── */
+.sbkr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+@media(max-width:900px) { .sbkr-grid { grid-template-columns: repeat(2, 1fr); } }
+.sbkr-region { background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 8px; padding: 10px; }
+.sbkr-region-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.sbkr-round-label { font-size: 0.58rem; color: #4b5563; text-transform: uppercase; letter-spacing: 0.04em; margin: 6px 0 3px; border-top: 1px solid #1e2130; padding-top: 5px; }
+.sbkr-round-label:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.sbkr-team { display: flex; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 3px; font-size: 0.67rem; min-height: 18px; }
+.sbkr-team.elim { color: #374151; text-decoration: line-through; }
+.sbkr-team.picked { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
+.sbkr-team.picked-elim { background: #1e3a5f33; color: #93c5fd55; text-decoration: line-through; }
+.sbkr-team.tbd { color: #2a2d3a; font-style: italic; }
+.sbkr-seed { font-size: 0.55rem; color: #4b5563; min-width: 14px; }
+.sbkr-pct { font-size: 0.58rem; color: #555; margin-left: auto; }
+
+/* Bracket tree (bkr) */
 .bracket-tree-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
 @media(max-width:1100px) { .bracket-tree-grid { grid-template-columns: 1fr; } }
 .bkr-region { background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 10px; padding: 12px; }
@@ -181,6 +233,8 @@ td { padding: 6px 9px; white-space: nowrap; }
 .bkr-team.picked-elim { background: #1e3a5f44; color: #93c5fd66; text-decoration: line-through; }
 .bkr-seed { font-size: 0.55rem; color: #4b5563; min-width: 16px; flex-shrink: 0; }
 .bkr-team.bkr-tbd { color: #2a2d3a; }
+.bkr-s16-layout { display: flex; flex-direction: column; gap: 12px; }
+.bkr-center { display: flex; justify-content: center; gap: 4px; }
 </style>
 </head>
 <body>
@@ -204,9 +258,8 @@ td { padding: 6px 9px; white-space: nowrap; }
     <div class="days-row" id="dayCards"></div>
   </div>
 
-  <!-- Top picks -->
-  <div class="section-title" id="picksTitle">Top Picks</div>
-  <div class="picks-panel" id="picksPanel"></div>
+  <!-- Entry panels (picks history + next picks per entry) -->
+  <div id="entryPanelsSection" style="margin-bottom:24px"></div>
 
   <!-- Table -->
   <div class="table-controls">
@@ -224,9 +277,6 @@ td { padding: 6px 9px; white-space: nowrap; }
   <div class="table-wrapper">
     <table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
   </div>
-
-  <!-- Picks History -->
-  <div id="picksHistorySection" style="margin-top:28px;padding-top:20px;border-top:1px solid #1e2130"></div>
 
   <!-- Bracket -->
   <div id="bracketSection" style="margin-top:28px;padding-top:20px;border-top:1px solid #1e2130"></div>
@@ -485,7 +535,7 @@ async function fetchLiveResults() {
 async function fetchESPNPickPct() {
   try {
     const BASE = "https://gambit-api.fantasy.espn.com/apis/v1/challenges/tcmen?view=whopickedwhom";
-    const PERIOD_KEYS = {1:"r32", 2:"s16", 3:"e8", 4:"f4", 5:"cp", 6:"win"};
+    const PERIOD_KEYS = {1:"r32", 2:"s16", 3:"e8", 4:"f4", 5:"cp"};
     const pcts = {};
     await Promise.all(Object.entries(PERIOD_KEYS).map(async ([sp, key]) => {
       const res = await fetch(`${BASE}&scoringPeriodId=${sp}`, { cache: "no-store" });
@@ -552,10 +602,12 @@ function availableEntriesForTeam(teamName, dayNum) {
 function isEligible(t, day) {
   const prob = t[ROUND_FIELD[day.round]] || 0;
   if (prob === 0) return false;
-  // If ESPN has told us which day this team plays, use that
-  if (teamDayMap[t.name] !== undefined) return teamDayMap[t.name] === day.num;
-  // Fallback before schedule loads: Silver odds say they can reach this round
-  return true;
+  const mapped = teamDayMap[t.name];
+  // Only trust ESPN schedule if it maps this team to a current/future day.
+  // Past-day entries (e.g. Duke = day 1 from R64) are stale for S16+ and must be ignored.
+  if (mapped !== undefined && mapped >= state.currentDay) return mapped === day.num;
+  // Fallback: use region schedule from DAYS config (correct for all rounds)
+  return day.regions.includes(t.region);
 }
 
 function isTournamentOut(teamName) {
@@ -702,56 +754,7 @@ function renderDayCards() {
   }).join("");
 }
 
-function renderPicks() {
-  const day = DAYS[state.currentDay - 1];
-  const openSlots = openSlotsForDay(state.currentDay);
-  document.getElementById("picksTitle").textContent =
-    `Top Picks — ${day.label} · ${day.date} · ${openSlots} slot${openSlots !== 1 ? 's' : ''} remaining`;
-
-  // Get eligible, available teams (can be used by at least one entry)
-  let eligible = TEAMS.filter(t => {
-    if (isTournamentOut(t.name)) return false;
-    if (!isEligible(t, day)) return false;
-    return availableEntriesForTeam(t.name, state.currentDay).length > 0;
-  });
-
-  eligible.forEach(t => { t._comp = composite(t, day.round); });
-  eligible.sort((a,b) => b._comp - a._comp);
-
-  const medals = ["🥇","🥈","🥉","④","⑤","⑥"];
-  document.getElementById("picksPanel").innerHTML = eligible.slice(0, 6).map((t, i) => {
-    const wp = winProb(t, day.round);
-    const d  = diff(t, day.round);
-    const fv = futureValue(t, day.round);
-    const c  = composite(t, day.round);
-    const availEntries = availableEntriesForTeam(t.name, state.currentDay);
-    const alreadyPickedEntries = getPicksForDay(state.currentDay)
-      .map((p, idx) => p === t.name ? idx : -1).filter(x => x >= 0);
-
-    let bottomEl = "";
-    if (alreadyPickedEntries.length > 0) {
-      bottomEl += `<div class="already-picked">✓ E${alreadyPickedEntries.map(x=>x+1).join(", ")} picked</div>`;
-    }
-    if (availEntries.length > 0) {
-      bottomEl += `<button class="pick-btn" style="margin-top:4px" onclick="pickTeam('${t.name}')">+ Pick for Entry ${availEntries[0]+1}</button>`;
-    } else if (alreadyPickedEntries.length === 0) {
-      bottomEl += `<button class="pick-btn" disabled>${openSlots > 0 ? 'Used by all entries' : 'Day Full'}</button>`;
-    }
-
-    return `<div class="pick-card rank-${i+1}">
-      <div class="pc-rank">${medals[i]}</div>
-      <div class="pc-name">${t.name}${t.ff ? ' <span class="ff-badge">FF</span>' : ''}</div>
-      <div class="pc-meta">${t.seed} · ${t.region}</div>
-      <div class="pc-scores">
-        <div class="score-box"><div class="sb-label">Win Prob</div><div class="sb-val win-prob">${wp.toFixed(1)}%</div></div>
-        <div class="score-box"><div class="sb-label">Diff</div><div class="sb-val diff-val">${d.toFixed(1)}%</div></div>
-        <div class="score-box"><div class="sb-label">Composite</div><div class="sb-val composite-val">${c.toFixed(1)}%</div></div>
-        <div class="score-box"><div class="sb-label">Future Cost</div><div class="sb-val future-val">${fv.toFixed(1)}%</div></div>
-      </div>
-      ${bottomEl}
-    </div>`;
-  }).join("") || `<div style="color:#555;font-size:0.85rem;padding:8px">No eligible teams for this day.</div>`;
-}
+// renderPicks removed — logic is now inside renderEntryPanels() per entry.
 
 function renderTable() {
   const day = DAYS[state.currentDay - 1];
@@ -802,7 +805,6 @@ function renderTable() {
     {k:"tc_e8",  label:"TC E8%",  tip:"ESPN TC: % of brackets that picked this team to advance to the Elite 8. Only shown for seeds 1–13."},
     {k:"tc_f4",  label:"TC F4%",  tip:"ESPN TC: % of brackets that picked this team to advance to the Final Four. Only shown for seeds 1–13."},
     {k:"tc_cp",  label:"TC CP%",  tip:"ESPN TC: % of brackets that picked this team to reach the Championship Game. Only shown for seeds 1–13."},
-    {k:"tc_win", label:"TC Win%", tip:"ESPN TC: % of brackets that picked this team to win the Championship. Only shown for seeds 1–13."},
     {k:"diff",  label:"Diff",      tip:"P(win this round game) × P(lose next round game). High = great pick for this round, low future loss. e.g. R64 Diff = R32% − S16%."},
     {k:"fv",    label:"Future",    tip:"Discounted sum of this team's value in all future rounds (0.5× per round ahead). High = dangerous to use now, they're more valuable later."},
     {k:"comp",  label:"Composite", tip:"Diff − 0.4 × Future Cost. The primary sort key: balances picking a likely winner today against preserving optionality for harder future rounds."},
@@ -874,59 +876,205 @@ function renderTable() {
   }).join("");
 }
 
+// ── ENTRY MODE CONFIG ─────────────────────────────────────────────────────────
+// Entry 1 = Champion Pool (split pot among all who pick champion correctly)
+// Entry 2 & 3 = Seed Sum Tiebreaker (higher total seed number wins tiebreak)
+const ENTRY_MODES = ['champion', 'seedsum', 'seedsum'];
+const SEED_SUM_LEADER = 35; // top score in the pool right now
+
+function seedNum(teamName) {
+  const t = TEAMS.find(x => x.name === teamName);
+  return t ? parseInt(t.seed) : 0;
+}
+
+function entrySeedSum(entryIdx) {
+  return Object.values(state.picks)
+    .map(arr => arr[entryIdx])
+    .filter(Boolean)
+    .reduce((sum, name) => sum + seedNum(name), 0);
+}
+
+// For each future unpicked day, how many unused eligible teams does entry i have?
+function futureConflicts(entryIdx) {
+  const used = new Set(usedByEntry(entryIdx));
+  const conflicts = [];
+  for (const day of DAYS) {
+    if (day.num <= state.currentDay) continue;
+    const existingPick = (state.picks[String(day.num)] || [])[entryIdx];
+    if (existingPick) continue; // already picked
+    // Teams eligible for this day by region + round odds
+    const eligible = TEAMS.filter(t => {
+      if (isTournamentOut(t.name)) return false;
+      const prob = t[ROUND_FIELD[day.round]] || 0;
+      if (prob === 0) return false;
+      return day.regions.includes(t.region);
+    });
+    if (eligible.length === 0) continue;
+    const unused = eligible.filter(t => !used.has(t.name));
+    if (unused.length === 0) {
+      conflicts.push({ day, eligible, unused, level: 'danger' });
+    } else if (unused.length <= 2) {
+      conflicts.push({ day, eligible, unused, level: 'warn' });
+    }
+  }
+  return conflicts;
+}
+
 function setFocusEntry(i) {
   state.focusEntry = i;
   saveState();
   renderBracket();
-  renderPicksHistory();
 }
 
-function renderPicksHistory() {
-  const el = document.getElementById('picksHistorySection');
+function renderEntryPanels() {
+  const el = document.getElementById('entryPanelsSection');
   if (!el) return;
 
-  // Days that have at least one pick
-  const playedDays = DAYS.filter(d => {
+  const day = DAYS[state.currentDay - 1];
+  const medals = ['🥇','🥈','🥉'];
+
+  const pastDays = DAYS.filter(d => {
     if (d.num > state.currentDay) return false;
-    const picks = state.picks[String(d.num)] || [];
-    return picks.some(p => p !== null);
+    return Object.values(state.picks[String(d.num)] || {}).some(p => p !== null);
   });
 
-  if (playedDays.length === 0) { el.innerHTML = ''; return; }
+  const cards = Array.from({length: state.numEntries}, (_, i) => {
+    const alive = state.entryAlive[i];
+    const mode = ENTRY_MODES[i] || 'champion';
+    const isChampion = mode === 'champion';
+    const seedSum = entrySeedSum(i);
 
-  const numEntries = state.numEntries;
+    // Header
+    const modeLabel = isChampion
+      ? 'Champion Pool — split pot'
+      : `Seed Sum Tiebreaker`;
+    const seedBadge = !isChampion
+      ? `<span class="ep-seedsum" title="Your running seed total. Top: ${SEED_SUM_LEADER}">
+           Seeds: ${seedSum} / top ${SEED_SUM_LEADER}
+         </span>`
+      : '';
 
-  const headerCells =
-    `<div class="ph-cell ph-entry-hdr" style="background:#0f1117"></div>` +
-    playedDays.map(d =>
-      `<div class="ph-cell ph-day-hdr"><span>${d.label}</span><span style="color:#3a3d4a;font-size:0.58rem">${d.date}</span></div>`
-    ).join('');
+    // Timeline of past picks
+    const timeline = pastDays.length === 0
+      ? `<div style="font-size:0.65rem;color:#3a3d4a;margin-bottom:10px">No picks yet</div>`
+      : `<div class="ep-timeline">` +
+        pastDays.map(d => {
+          const pick = (state.picks[String(d.num)] || [])[i] || null;
+          const dead = pick && isTournamentOut(pick);
+          const sn = pick ? seedNum(pick) : null;
+          return `<div class="ep-pick-chip">
+            <span class="ep-chip-day">${d.label.replace(' Day','D').replace('Round of ','R')}</span>
+            <span class="ep-chip-team ${dead ? 'dead' : pick ? '' : 'empty'}">${pick || '—'}</span>
+            ${sn ? `<span class="ep-chip-seed">seed ${sn}</span>` : ''}
+          </div>`;
+        }).join('') +
+        `</div>`;
 
-  const entryRows = Array.from({length: numEntries}, (_, i) => {
-    const label = `<div class="ph-cell ph-entry-hdr">Entry ${i+1}</div>`;
-    const cells = playedDays.map(d => {
-      const pick = (state.picks[String(d.num)] || [])[i] || null;
-      if (!pick) return `<div class="ph-cell ph-pick-cell"><span class="ph-pill empty">—</span></div>`;
-      const dead = isTournamentOut(pick);
-      return `<div class="ph-cell ph-pick-cell"><span class="ph-pill ${dead ? 'dead' : 'alive'}">${pick}</span></div>`;
-    }).join('');
-    return `<div class="ph-row">${label}${cells}</div>`;
-  }).join('');
+    // Top picks for current day for this entry
+    let recs = [];
+    if (alive) {
+      recs = TEAMS.filter(t => {
+        if (isTournamentOut(t.name)) return false;
+        if (!isEligible(t, day)) return false;
+        return availableEntriesForTeam(t.name, state.currentDay).includes(i);
+      });
 
-  el.innerHTML = `
-    <div class="section-title" style="margin-bottom:10px">Picks History</div>
-    <div class="ph-grid" style="grid-template-columns:80px repeat(${playedDays.length}, minmax(85px, 1fr))">
-      <div class="ph-row">${headerCells}</div>
-      ${entryRows}
+      // Score differently per mode
+      recs = recs.map(t => {
+        const sn = parseInt(t.seed);
+        const comp = composite(t, day.round);
+        const wp = winProb(t, day.round);
+        // Champion pool: maximize win% (championship probability)
+        // Seed sum: balance composite with seed bonus to encourage useful upsets
+        const score = isChampion ? t.win : comp + sn * 0.8;
+        return { ...t, _score: score, _wp: wp, _comp: comp, _sn: sn };
+      });
+      recs.sort((a, b) => b._score - a._score);
+      recs = recs.slice(0, 3);
+    }
+
+    const alreadyPickedToday = (state.picks[String(state.currentDay)] || [])[i];
+    let recsHtml = '';
+    if (!alive) {
+      recsHtml = `<div class="ep-no-picks">Entry eliminated</div>`;
+    } else if (alreadyPickedToday) {
+      recsHtml = `<div class="ep-already">✓ Picked ${alreadyPickedToday} for ${day.label}</div>`;
+    } else if (recs.length === 0) {
+      recsHtml = `<div class="ep-no-picks">No eligible teams — all used or not playing today</div>`;
+    } else {
+      recsHtml = `<div class="ep-next-label">${day.label} · ${day.date}</div>
+        <div class="ep-recs">` +
+        recs.map((t, ri) => {
+          const scoreLabel = isChampion
+            ? `<span class="ep-rec-win">${t.win.toFixed(1)}% win</span>`
+            : `<span class="ep-rec-score">+${t._sn}pts · ${t._comp.toFixed(0)}%</span>`;
+          return `<div class="ep-rec" onclick="pickTeam('${t.name}')">
+            <span class="ep-rec-medal">${medals[ri]}</span>
+            <span class="ep-rec-name">${t.name}</span>
+            <span class="ep-rec-seed">${t.region[0]}·${t.seed}</span>
+            <span class="ep-rec-win">${t._wp.toFixed(0)}%↑</span>
+            ${scoreLabel}
+            <button class="ep-pick-btn" onclick="event.stopPropagation();pickTeam('${t.name}')">Pick</button>
+          </div>`;
+        }).join('') +
+        `</div>`;
+    }
+
+    // Upcoming unpicked days
+    const futureDays = DAYS.filter(d => d.num > state.currentDay);
+    const upcomingHtml = futureDays.length === 0 ? '' :
+      `<div class="ep-timeline" style="margin-top:8px;padding-top:8px;border-top:1px solid #1e2130">` +
+      futureDays.map(d => {
+        const pick = (state.picks[String(d.num)] || [])[i] || null;
+        const dead = pick && isTournamentOut(pick);
+        const sn = pick ? seedNum(pick) : null;
+        const label = d.label.replace(' Day','D').replace('Round of ','R').replace('Final Four','F4').replace('Champ.','NCG');
+        return `<div class="ep-pick-chip">
+          <span class="ep-chip-day">${label}</span>
+          <span class="ep-chip-team ${dead ? 'dead' : pick ? '' : 'empty'}">${pick || '—'}</span>
+          ${sn ? `<span class="ep-chip-seed">seed ${sn}</span>` : ''}
+        </div>`;
+      }).join('') +
+      `</div>`;
+
+    // Conflict analysis
+    const conflicts = alive ? futureConflicts(i) : [];
+    const conflictsHtml = conflicts.length === 0 ? '' :
+      `<div class="ep-conflicts">` +
+      conflicts.map(c => {
+        const names = c.unused.map(t => t.name).join(', ') || 'none';
+        const icon = c.level === 'danger' ? '🚨' : '⚠️';
+        const msg = c.level === 'danger'
+          ? `${icon} <strong>${c.day.label}</strong>: all eligible teams already used — no valid pick possible`
+          : `${icon} <strong>${c.day.label}</strong>: only ${c.unused.length} option${c.unused.length !== 1 ? 's' : ''} left (${names})`;
+        return `<div class="ep-conflict ${c.level}">${msg}</div>`;
+      }).join('') +
+      `</div>`;
+
+    return `<div class="ep-card">
+      <div class="ep-header">
+        <span class="ep-dot ${alive ? '' : 'dead'}"></span>
+        <span class="ep-title">Entry ${i+1}</span>
+        <span class="ep-mode">${modeLabel}</span>
+        ${seedBadge}
+      </div>
+      ${timeline}
+      ${recsHtml}
+      ${upcomingHtml}
+      ${conflictsHtml}
     </div>`;
+  });
+
+  el.innerHTML =
+    `<div class="section-title" style="margin-bottom:8px">Entries — Picks &amp; Next Round</div>
+     <div class="ep-grid">${cards.join('')}</div>`;
 }
 
 function renderBracket() {
   const R64_PAIRS = [[1,16],[8,9],[5,12],[4,13],[6,11],[3,14],[7,10],[2,15]];
   const R32_GROUPS = [[0,1],[2,3],[4,5],[6,7]];
   const S16_GROUPS = [[0,1],[2,3]];
-  // pod heights (px): each round doubles vs R64 base of 44px
-  const POD_H = { r64: 44, r32: 88, s16: 176, e8: 352 };
+  const POD_H = { s16: 88, e8: 176 };
 
   const fe = state.focusEntry ?? -1;
   const pickedSet = new Set();
@@ -936,16 +1084,13 @@ function renderBracket() {
     Object.values(state.picks).flatMap(a => a.filter(Boolean)).forEach(n => pickedSet.add(n));
   }
 
-  // Get canonical bracket team for a seed slot (for FF seeds, pick the one that advanced)
   function getBracketTeam(region, seed) {
     const teams = TEAMS.filter(t => t.region === region && parseInt(t.seed) === seed);
     if (!teams.length) return null;
     if (teams.length === 1) return teams[0];
-    // FF pair: prefer the winner (highest r32), fall back to first
     return teams.slice().sort((a,b) => b.r32 - a.r32)[0];
   }
 
-  // From a list of teams, return the one most likely to advance in `advField`
   function winnerOf(teams, advField) {
     return teams.filter(Boolean).find(t => t[advField] === 100) || null;
   }
@@ -972,6 +1117,7 @@ function renderBracket() {
   }
 
   const regions = ['East','Midwest','South','West'];
+  const e8Winners = {};
 
   const regionsHtml = regions.map(region => {
     const r64Pods = R64_PAIRS.map(([s1, s2]) =>
@@ -989,39 +1135,60 @@ function renderBracket() {
       winnerOf(s16Pods[0], 'e8'),
       winnerOf(s16Pods[1], 'e8'),
     ];
+    e8Winners[region] = winnerOf(e8Pod, 'f4');
 
     return `<div class="bkr-region">
       <h3>${region}</h3>
       <div class="bkr-rounds">
-        ${renderCol(r64Pods, POD_H.r64, 'R64')}
-        ${renderCol(r32Pods, POD_H.r32, 'R32')}
         ${renderCol(s16Pods, POD_H.s16, 'S16')}
-        ${renderCol([e8Pod], POD_H.e8,  'E8')}
+        ${renderCol([e8Pod], POD_H.e8, 'E8')}
       </div>
     </div>`;
-  }).join('');
+  });
+
+  const f4Left  = [e8Winners['East'],    e8Winners['South']];
+  const f4Right = [e8Winners['Midwest'], e8Winners['West']];
+  const champLeft  = winnerOf(f4Left,  'cp');
+  const champRight = winnerOf(f4Right, 'cp');
+
+  const centerHtml = `<div class="bkr-center">
+    <div class="bkr-col">
+      <div class="bkr-col-hdr">F4</div>
+      <div class="bkr-pod" style="height:${POD_H.e8}px">${f4Left.map(t => bkrTeamHtml(t)).join('')}</div>
+    </div>
+    <div class="bkr-col">
+      <div class="bkr-col-hdr">Champ</div>
+      <div class="bkr-pod" style="height:${POD_H.e8}px">${[champLeft, champRight].map(t => bkrTeamHtml(t)).join('')}</div>
+    </div>
+    <div class="bkr-col">
+      <div class="bkr-col-hdr">F4</div>
+      <div class="bkr-pod" style="height:${POD_H.e8}px">${f4Right.map(t => bkrTeamHtml(t)).join('')}</div>
+    </div>
+  </div>`;
 
   const fe2 = state.focusEntry ?? -1;
   const selectorHtml = `<div class="entry-selector">
-    <span class="es-label">Show picks for:</span>
+    <span class="es-label">Highlight picks for:</span>
     <button class="es-btn ${fe2 === -1 ? 'active' : ''}" onclick="setFocusEntry(-1)">All</button>
-    ${state.entryAlive.map((alive, i) =>
-      `<button class="es-btn ${fe2 === i ? 'active' : ''}" onclick="setFocusEntry(${i})">Entry ${i+1}</button>`
+    ${state.entryAlive.map((a, i) =>
+      `<button class="es-btn ${fe2 === i ? 'active' : ''}" onclick="setFocusEntry(${i})">E${i+1}</button>`
     ).join('')}
   </div>`;
 
   document.getElementById('bracketSection').innerHTML =
-    `<div class="section-title">Bracket</div>
-    ${selectorHtml}
-    <div class="bracket-tree-grid">${regionsHtml}</div>`;
+    `<div class="section-title">Remaining Bracket (S16+)</div>
+     ${selectorHtml}
+     <div class="bkr-s16-layout">
+       <div class="bracket-tree-grid">${regionsHtml.join('')}</div>
+       ${centerHtml}
+     </div>`;
 }
 
 function renderAll() {
   renderEntries();
   renderDayCards();
-  renderPicks();
+  renderEntryPanels();
   renderTable();
-  renderPicksHistory();
   renderBracket();
 }
 
