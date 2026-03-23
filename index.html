@@ -180,6 +180,7 @@ td { padding: 6px 9px; white-space: nowrap; }
 .bkr-team.picked { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
 .bkr-team.picked-elim { background: #1e3a5f44; color: #93c5fd66; text-decoration: line-through; }
 .bkr-seed { font-size: 0.55rem; color: #4b5563; min-width: 16px; flex-shrink: 0; }
+.bkr-team.bkr-tbd { color: #2a2d3a; }
 </style>
 </head>
 <body>
@@ -955,7 +956,7 @@ function renderBracket() {
   }
 
   function bkrTeamHtml(t) {
-    if (!t) return '';
+    if (!t) return `<div class="bkr-team bkr-tbd">—</div>`;
     const out = isTeamOut(t);
     const picked = pickedSet.has(t.name);
     const cls = picked ? (out ? 'picked-elim' : 'picked') : out ? 'elim' : '';
@@ -964,7 +965,7 @@ function renderBracket() {
 
   function renderCol(pods, height, label) {
     const podsHtml = pods.map(teams => {
-      const inner = teams.filter(Boolean).map(t => bkrTeamHtml(t)).join('');
+      const inner = teams.map(t => bkrTeamHtml(t)).join('');
       return `<div class="bkr-pod" style="height:${height}px">${inner}</div>`;
     }).join('');
     return `<div class="bkr-col"><div class="bkr-col-hdr">${label}</div>${podsHtml}</div>`;
@@ -973,27 +974,21 @@ function renderBracket() {
   const regions = ['East','Midwest','South','West'];
 
   const regionsHtml = regions.map(region => {
-    // Build R64 pods (original matchups)
     const r64Pods = R64_PAIRS.map(([s1, s2]) =>
-      [s1, s2].map(s => getBracketTeam(region, s)).filter(Boolean)
+      [s1, s2].map(s => getBracketTeam(region, s))
     );
-
-    // R32 pods: 2 R64 winners face each other
-    const r32Pods = R32_GROUPS.map(([i, j]) => {
-      const w1 = winnerOf(r64Pods[i], 'r32');
-      const w2 = winnerOf(r64Pods[j], 'r32');
-      return [w1, w2].filter(Boolean);
-    });
-
-    // S16 pods: 2 R32 winners face each other
-    const s16Pods = S16_GROUPS.map(([i, j]) => {
-      const w1 = winnerOf(r32Pods[i], 's16');
-      const w2 = winnerOf(r32Pods[j], 's16');
-      return [w1, w2].filter(Boolean);
-    });
-
-    // E8 pod: S16 winners
-    const e8Pod = s16Pods.map(pod => winnerOf(pod, 'e8')).filter(Boolean);
+    const r32Pods = R32_GROUPS.map(([i, j]) => [
+      winnerOf(r64Pods[i], 'r32'),
+      winnerOf(r64Pods[j], 'r32'),
+    ]);
+    const s16Pods = S16_GROUPS.map(([i, j]) => [
+      winnerOf(r32Pods[i], 's16'),
+      winnerOf(r32Pods[j], 's16'),
+    ]);
+    const e8Pod = [
+      winnerOf(s16Pods[0], 'e8'),
+      winnerOf(s16Pods[1], 'e8'),
+    ];
 
     return `<div class="bkr-region">
       <h3>${region}</h3>
