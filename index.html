@@ -233,8 +233,9 @@ td { padding: 6px 9px; white-space: nowrap; }
 .bkr-team.picked-elim { background: #1e3a5f44; color: #93c5fd66; text-decoration: line-through; }
 .bkr-seed { font-size: 0.55rem; color: #4b5563; min-width: 16px; flex-shrink: 0; }
 .bkr-team.bkr-tbd { color: #2a2d3a; }
-.bkr-s16-layout { display: flex; flex-direction: column; gap: 12px; }
-.bkr-center { display: flex; justify-content: center; gap: 4px; }
+.bkr-full { display: flex; align-items: flex-start; gap: 6px; overflow-x: auto; }
+.bkr-half { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.bkr-center-col { display: flex; gap: 3px; align-self: center; }
 </style>
 </head>
 <body>
@@ -924,6 +925,48 @@ function setFocusEntry(i) {
   state.focusEntry = i;
   saveState();
   renderBracket();
+  renderEntryRecs(i);
+}
+
+function renderEntryRecs(entryIdx) {
+  const el = document.getElementById('recsPanel');
+  if (!el) return;
+  if (entryIdx < 0) { el.innerHTML = ''; return; }
+  const day = DAYS[state.currentDay - 1];
+  const medals = ['🥇','🥈','🥉','④','⑤','⑥'];
+  let recs = TEAMS.filter(t => {
+    if (isTournamentOut(t.name)) return false;
+    if (!isEligible(t, day)) return false;
+    return availableEntriesForTeam(t.name, state.currentDay).includes(entryIdx);
+  }).map(t => ({
+    ...t,
+    _comp: composite(t, day.round),
+    _wp: winProb(t, day.round),
+    _diff: diff(t, day.round),
+    _fv: futureValue(t, day.round),
+  }));
+  recs.sort((a,b) => b._comp - a._comp);
+  recs = recs.slice(0, 6);
+  if (recs.length === 0) {
+    el.innerHTML = `<div style="color:#555;font-size:0.8rem;padding:8px 0">No eligible teams for Entry ${entryIdx+1} today</div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="section-title" style="margin:12px 0 8px">Entry ${entryIdx+1} — Top Picks for ${day.label}</div>
+    <div class="picks-panel" style="margin-bottom:0">
+      ${recs.map((t, i) => `<div class="pick-card rank-${i<3?i+1:3}">
+        <div class="pc-rank">${medals[i]}</div>
+        <div class="pc-name">${t.name}${t.ff?' <span class="ff-badge">FF</span>':''}</div>
+        <div class="pc-meta">${t.seed} · ${t.region}</div>
+        <div class="pc-scores">
+          <div class="score-box"><div class="sb-label">Win Prob</div><div class="sb-val win-prob">${t._wp.toFixed(1)}%</div></div>
+          <div class="score-box"><div class="sb-label">Diff</div><div class="sb-val diff-val">${t._diff.toFixed(1)}%</div></div>
+          <div class="score-box"><div class="sb-label">Composite</div><div class="sb-val composite-val">${t._comp.toFixed(1)}%</div></div>
+          <div class="score-box"><div class="sb-label">Future Cost</div><div class="sb-val future-val">${t._fv.toFixed(1)}%</div></div>
+        </div>
+        <button class="pick-btn" onclick="pickTeam('${t.name}')">+ Pick for Entry ${entryIdx+1}</button>
+      </div>`).join('')}
+    </div>`;
 }
 
 function renderEntryPanels() {
@@ -979,15 +1022,9 @@ function renderEntryPanels() {
         return availableEntriesForTeam(t.name, state.currentDay).includes(i);
       });
 
-      // Score differently per mode
       recs = recs.map(t => {
-        const sn = parseInt(t.seed);
         const comp = composite(t, day.round);
-        const wp = winProb(t, day.round);
-        // Champion pool: maximize win% (championship probability)
-        // Seed sum: balance composite with seed bonus to encourage useful upsets
-        const score = isChampion ? t.win : comp + sn * 0.8;
-        return { ...t, _score: score, _wp: wp, _comp: comp, _sn: sn };
+        return { ...t, _score: comp, _wp: winProb(t, day.round), _comp: comp, _sn: parseInt(t.seed) };
       });
       recs.sort((a, b) => b._score - a._score);
       recs = recs.slice(0, 3);
@@ -1005,9 +1042,7 @@ function renderEntryPanels() {
       recsHtml = `<div class="ep-next-label">${day.label} · ${day.date}</div>
         <div class="ep-recs">` +
         recs.map((t, ri) => {
-          const scoreLabel = isChampion
-            ? `<span class="ep-rec-win">${t.win.toFixed(1)}% win</span>`
-            : `<span class="ep-rec-score">+${t._sn}pts · ${t._comp.toFixed(0)}%</span>`;
+          const scoreLabel = `<span class="ep-rec-score">${t._comp.toFixed(1)}%</span>`;
           return `<div class="ep-rec" onclick="pickTeam('${t.name}')">
             <span class="ep-rec-medal">${medals[ri]}</span>
             <span class="ep-rec-name">${t.name}</span>
@@ -1122,68 +1157,71 @@ function renderBracket() {
   const regions = ['East','Midwest','South','West'];
   const e8Winners = {};
 
-  const regionsHtml = regions.map(region => {
-    const r64Pods = R64_PAIRS.map(([s1, s2]) =>
-      [s1, s2].map(s => getBracketTeam(region, s))
-    );
-    const r32Pods = R32_GROUPS.map(([i, j]) => [
-      winnerOf(r64Pods[i], 'r32'),
-      winnerOf(r64Pods[j], 'r32'),
-    ]);
-    const s16Pods = S16_GROUPS.map(([i, j]) => [
-      winnerOf(r32Pods[i], 's16'),
-      winnerOf(r32Pods[j], 's16'),
-    ]);
-    const e8Pod = [
-      winnerOf(s16Pods[0], 'e8'),
-      winnerOf(s16Pods[1], 'e8'),
-    ];
+  function buildRegion(region) {
+    const r64Pods = R64_PAIRS.map(([s1,s2]) => [s1,s2].map(s => getBracketTeam(region,s)));
+    const r32Pods = R32_GROUPS.map(([i,j]) => [winnerOf(r64Pods[i],'r32'), winnerOf(r64Pods[j],'r32')]);
+    const s16Pods = S16_GROUPS.map(([i,j]) => [winnerOf(r32Pods[i],'s16'), winnerOf(r32Pods[j],'s16')]);
+    const e8Pod   = [winnerOf(s16Pods[0],'e8'), winnerOf(s16Pods[1],'e8')];
     e8Winners[region] = winnerOf(e8Pod, 'f4');
+    return { s16Pods, e8Pod };
+  }
 
+  // Left half: East (top) + South (bottom), columns flow S16→E8 (right toward center)
+  // Right half: Midwest (top) + West (bottom), columns flow E8→S16 (left toward center, mirrored)
+  function regionCard(region, mirrored) {
+    const { s16Pods, e8Pod } = buildRegion(region);
+    const regionColors = { East:'#3b82f6', Midwest:'#8b5cf6', South:'#22c55e', West:'#f59e0b' };
+    const cols = mirrored
+      ? `${renderCol([e8Pod], POD_H.e8, 'E8')}${renderCol(s16Pods, POD_H.s16, 'S16')}`
+      : `${renderCol(s16Pods, POD_H.s16, 'S16')}${renderCol([e8Pod], POD_H.e8, 'E8')}`;
     return `<div class="bkr-region">
-      <h3>${region}</h3>
-      <div class="bkr-rounds">
-        ${renderCol(s16Pods, POD_H.s16, 'S16')}
-        ${renderCol([e8Pod], POD_H.e8, 'E8')}
-      </div>
+      <h3 style="color:${regionColors[region]}">${region}</h3>
+      <div class="bkr-rounds">${cols}</div>
     </div>`;
-  });
+  }
 
   const f4Left  = [e8Winners['East'],    e8Winners['South']];
   const f4Right = [e8Winners['Midwest'], e8Winners['West']];
   const champLeft  = winnerOf(f4Left,  'cp');
   const champRight = winnerOf(f4Right, 'cp');
+  const totalH = POD_H.e8 * 2 + 6; // East + South heights + gap
 
-  const centerHtml = `<div class="bkr-center">
+  const centerHtml = `<div class="bkr-center-col">
     <div class="bkr-col">
       <div class="bkr-col-hdr">F4</div>
-      <div class="bkr-pod" style="height:${POD_H.e8}px">${f4Left.map(t => bkrTeamHtml(t)).join('')}</div>
+      <div class="bkr-pod" style="height:${totalH}px">${f4Left.map(t=>bkrTeamHtml(t)).join('')}</div>
     </div>
     <div class="bkr-col">
-      <div class="bkr-col-hdr">Champ</div>
-      <div class="bkr-pod" style="height:${POD_H.e8}px">${[champLeft, champRight].map(t => bkrTeamHtml(t)).join('')}</div>
+      <div class="bkr-col-hdr">NCG</div>
+      <div class="bkr-pod" style="height:${totalH}px">${[champLeft,champRight].map(t=>bkrTeamHtml(t)).join('')}</div>
     </div>
     <div class="bkr-col">
       <div class="bkr-col-hdr">F4</div>
-      <div class="bkr-pod" style="height:${POD_H.e8}px">${f4Right.map(t => bkrTeamHtml(t)).join('')}</div>
+      <div class="bkr-pod" style="height:${totalH}px">${f4Right.map(t=>bkrTeamHtml(t)).join('')}</div>
     </div>
   </div>`;
 
   const fe2 = state.focusEntry ?? -1;
   const selectorHtml = `<div class="entry-selector">
     <span class="es-label">Highlight picks for:</span>
-    <button class="es-btn ${fe2 === -1 ? 'active' : ''}" onclick="setFocusEntry(-1)">All</button>
-    ${state.entryAlive.map((a, i) =>
-      `<button class="es-btn ${fe2 === i ? 'active' : ''}" onclick="setFocusEntry(${i})">E${i+1}</button>`
-    ).join('')}
+    <button class="es-btn ${fe2===-1?'active':''}" onclick="setFocusEntry(-1)">All</button>
+    ${state.entryAlive.map((a,i)=>`<button class="es-btn ${fe2===i?'active':''}" onclick="setFocusEntry(${i})">E${i+1}</button>`).join('')}
   </div>`;
 
   document.getElementById('bracketSection').innerHTML =
     `<div class="section-title">Remaining Bracket (S16+)</div>
      ${selectorHtml}
-     <div class="bkr-s16-layout">
-       <div class="bracket-tree-grid">${regionsHtml.join('')}</div>
+     <div id="recsPanel"></div>
+     <div class="bkr-full">
+       <div class="bkr-half">
+         ${regionCard('East', false)}
+         ${regionCard('South', false)}
+       </div>
        ${centerHtml}
+       <div class="bkr-half">
+         ${regionCard('Midwest', true)}
+         ${regionCard('West', true)}
+       </div>
      </div>`;
 }
 
