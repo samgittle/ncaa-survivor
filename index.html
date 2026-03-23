@@ -146,18 +146,41 @@ td { padding: 6px 9px; white-space: nowrap; }
 .et-available { background: #1e3a5f; color: #93c5fd; }
 .et-used      { background: #1a2e1a; color: #86efac; }
 .et-na        { background: #1f2937; color: #4b5563; }
-/* Bracket */
-.bracket-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-top: 8px; }
-@media(max-width:900px) { .bracket-grid { grid-template-columns: 1fr 1fr; } }
-.bracket-region { background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 10px; padding: 12px; }
-.bracket-region h3 { font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-.bp { margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid #1e2130; }
-.bp:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.bt { display: flex; align-items: center; gap: 5px; padding: 2px 4px; border-radius: 3px; font-size: 0.72rem; }
-.bt.elim { text-decoration: line-through; color: #ef4444; opacity: 0.55; }
-.bt.picked { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
-.bt.won { background: #14532d; color: #86efac; font-weight: 600; }
-.bt-seed { font-size: 0.62rem; color: #4b5563; min-width: 22px; }
+/* Entry selector */
+.entry-selector { display: flex; gap: 6px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+.es-label { font-size: 0.7rem; color: #666; }
+.es-btn { padding: 4px 14px; border-radius: 6px; border: 1px solid #2a2d3a; background: #1a1d27; color: #666; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: all 0.15s; }
+.es-btn:hover { border-color: #555; color: #ccc; }
+.es-btn.active { background: #1e3a5f; border-color: #3b82f6; color: #93c5fd; }
+
+/* Picks history */
+.ph-grid { display: grid; border: 1px solid #1e2130; border-radius: 8px; overflow: hidden; }
+.ph-cell { padding: 8px 10px; border-bottom: 1px solid #1e2130; border-right: 1px solid #1e2130; display: flex; align-items: center; justify-content: center; }
+.ph-cell:last-child { border-right: none; }
+.ph-row { display: contents; }
+.ph-day-hdr { background: #14171f; color: #555; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; flex-direction: column; gap: 1px; }
+.ph-entry-hdr { background: #14171f; color: #777; font-size: 0.72rem; font-weight: 700; justify-content: flex-start; padding-left: 14px; border-right: 1px solid #2a2d3a; }
+.ph-pick-cell { background: #1a1d27; }
+.ph-pill { display: inline-block; padding: 3px 9px; border-radius: 4px; font-weight: 600; font-size: 0.68rem; }
+.ph-pill.alive { background: #14532d55; color: #86efac; border: 1px solid #16653455; }
+.ph-pill.dead { background: #1f293766; color: #6b7280; border: 1px solid #37415144; text-decoration: line-through; }
+.ph-pill.empty { color: #3a3d4a; font-style: italic; }
+
+/* Bracket tree */
+.bracket-tree-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+@media(max-width:1100px) { .bracket-tree-grid { grid-template-columns: 1fr; } }
+.bkr-region { background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 10px; padding: 12px; }
+.bkr-region h3 { font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.bkr-rounds { display: flex; overflow-x: auto; gap: 3px; }
+.bkr-col { display: flex; flex-direction: column; flex: 0 0 auto; }
+.bkr-col-hdr { font-size: 0.58rem; color: #4b5563; text-align: center; padding: 0 4px 4px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #1e2130; margin-bottom: 0; white-space: nowrap; }
+.bkr-pod { display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; padding: 2px; }
+.bkr-team { display: flex; align-items: center; gap: 3px; padding: 2px 5px; margin: 1px 0; border-radius: 3px; font-size: 0.64rem; min-height: 20px; white-space: nowrap; color: #d1d5db; }
+.bkr-team.elim { color: #4b5563; text-decoration: line-through; }
+.bkr-team.won { background: #14532d; color: #86efac; font-weight: 600; }
+.bkr-team.picked { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
+.bkr-team.picked-elim { background: #1e3a5f44; color: #93c5fd66; text-decoration: line-through; }
+.bkr-seed { font-size: 0.55rem; color: #4b5563; min-width: 16px; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -202,8 +225,11 @@ td { padding: 6px 9px; white-space: nowrap; }
     <table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
   </div>
 
+  <!-- Picks History -->
+  <div id="picksHistorySection" style="margin-top:28px;padding-top:20px;border-top:1px solid #1e2130"></div>
+
   <!-- Bracket -->
-  <div id="bracketSection" style="margin-top:32px;padding-top:20px;border-top:1px solid #1e2130"></div>
+  <div id="bracketSection" style="margin-top:28px;padding-top:20px;border-top:1px solid #1e2130"></div>
 
   <!-- Entries (bottom) -->
   <div class="entries-bar" style="margin-top:32px;padding-top:20px;border-top:1px solid #1e2130;">
@@ -316,6 +342,7 @@ const DEFAULT_STATE = {
   currentDay: 1,
   sortCol: "composite",
   sortDir: "desc",
+  focusEntry: -1,
 };
 
 // Live data fetched from ESPN (not persisted, re-fetched on load)
@@ -847,28 +874,152 @@ function renderTable() {
   }).join("");
 }
 
+function setFocusEntry(i) {
+  state.focusEntry = i;
+  saveState();
+  renderBracket();
+  renderPicksHistory();
+}
+
+function renderPicksHistory() {
+  const el = document.getElementById('picksHistorySection');
+  if (!el) return;
+
+  // Days that have at least one pick
+  const playedDays = DAYS.filter(d => {
+    if (d.num > state.currentDay) return false;
+    const picks = state.picks[String(d.num)] || [];
+    return picks.some(p => p !== null);
+  });
+
+  if (playedDays.length === 0) { el.innerHTML = ''; return; }
+
+  const numEntries = state.numEntries;
+
+  const headerCells =
+    `<div class="ph-cell ph-entry-hdr" style="background:#0f1117"></div>` +
+    playedDays.map(d =>
+      `<div class="ph-cell ph-day-hdr"><span>${d.label}</span><span style="color:#3a3d4a;font-size:0.58rem">${d.date}</span></div>`
+    ).join('');
+
+  const entryRows = Array.from({length: numEntries}, (_, i) => {
+    const label = `<div class="ph-cell ph-entry-hdr">Entry ${i+1}</div>`;
+    const cells = playedDays.map(d => {
+      const pick = (state.picks[String(d.num)] || [])[i] || null;
+      if (!pick) return `<div class="ph-cell ph-pick-cell"><span class="ph-pill empty">—</span></div>`;
+      const dead = isTournamentOut(pick);
+      return `<div class="ph-cell ph-pick-cell"><span class="ph-pill ${dead ? 'dead' : 'alive'}">${pick}</span></div>`;
+    }).join('');
+    return `<div class="ph-row">${label}${cells}</div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:10px">Picks History</div>
+    <div class="ph-grid" style="grid-template-columns:80px repeat(${playedDays.length}, minmax(85px, 1fr))">
+      <div class="ph-row">${headerCells}</div>
+      ${entryRows}
+    </div>`;
+}
+
 function renderBracket() {
-  const PAIRS = [[1,16],[8,9],[5,12],[4,13],[6,11],[3,14],[7,10],[2,15]];
-  const allPicked = new Set(Object.values(state.picks).flatMap(arr => arr.filter(Boolean)));
+  const R64_PAIRS = [[1,16],[8,9],[5,12],[4,13],[6,11],[3,14],[7,10],[2,15]];
+  const R32_GROUPS = [[0,1],[2,3],[4,5],[6,7]];
+  const S16_GROUPS = [[0,1],[2,3]];
+  // pod heights (px): each round doubles vs R64 base of 44px
+  const POD_H = { r64: 44, r32: 88, s16: 176, e8: 352 };
 
-  const regions = ["East","Midwest","South","West"];
-  const html = `<div class="section-title">Bracket</div><div class="bracket-grid">${
-    regions.map(region => {
-      const rTeams = TEAMS.filter(t => t.region === region);
-      const pairs = PAIRS.map(([s1,s2]) => {
-        const slot = [s1,s2].flatMap(s => rTeams.filter(t => parseInt(t.seed) === s));
-        return `<div class="bp">${slot.map(t => {
-          const out = isTournamentOut(t.name);
-          const picked = allPicked.has(t.name);
-          const cls = out ? 'elim' : picked ? 'picked' : '';
-          return `<div class="bt ${cls}"><span class="bt-seed">${t.seed}</span>${t.name}${t.ff?` <span class="ff-badge">FF</span>`:''}</div>`;
-        }).join('')}</div>`;
-      }).join('');
-      return `<div class="bracket-region"><h3>${region}</h3>${pairs}</div>`;
-    }).join('')
-  }</div>`;
+  const fe = state.focusEntry ?? -1;
+  const pickedSet = new Set();
+  if (fe >= 0) {
+    Object.values(state.picks).forEach(arr => { if (arr[fe]) pickedSet.add(arr[fe]); });
+  } else {
+    Object.values(state.picks).flatMap(a => a.filter(Boolean)).forEach(n => pickedSet.add(n));
+  }
 
-  document.getElementById('bracketSection').innerHTML = html;
+  // Get canonical bracket team for a seed slot (for FF seeds, pick the one that advanced)
+  function getBracketTeam(region, seed) {
+    const teams = TEAMS.filter(t => t.region === region && parseInt(t.seed) === seed);
+    if (!teams.length) return null;
+    if (teams.length === 1) return teams[0];
+    // FF pair: prefer the winner (highest r32), fall back to first
+    return teams.slice().sort((a,b) => b.r32 - a.r32)[0];
+  }
+
+  // From a list of teams, return the one most likely to advance in `advField`
+  function winnerOf(teams, advField) {
+    const valid = teams.filter(Boolean);
+    if (!valid.length) return null;
+    const best = valid.slice().sort((a,b) => b[advField] - a[advField])[0];
+    return best[advField] > 0 ? best : null;
+  }
+
+  function bkrTeamHtml(t, advField) {
+    if (!t) return '';
+    const prob = t[advField];
+    const isElim = prob === 0;
+    const isWon  = prob === 100;
+    const picked = pickedSet.has(t.name);
+    const cls = picked ? (isElim ? 'picked-elim' : 'picked') : isElim ? 'elim' : isWon ? 'won' : '';
+    return `<div class="bkr-team ${cls}"><span class="bkr-seed">${t.seed}</span>${t.name}</div>`;
+  }
+
+  function renderCol(pods, height, advField, label) {
+    const podsHtml = pods.map(teams => {
+      const inner = teams.filter(Boolean).map(t => bkrTeamHtml(t, advField)).join('');
+      return `<div class="bkr-pod" style="height:${height}px">${inner}</div>`;
+    }).join('');
+    return `<div class="bkr-col"><div class="bkr-col-hdr">${label}</div>${podsHtml}</div>`;
+  }
+
+  const regions = ['East','Midwest','South','West'];
+
+  const regionsHtml = regions.map(region => {
+    // Build R64 pods (original matchups)
+    const r64Pods = R64_PAIRS.map(([s1, s2]) =>
+      [s1, s2].map(s => getBracketTeam(region, s)).filter(Boolean)
+    );
+
+    // R32 pods: 2 R64 winners face each other
+    const r32Pods = R32_GROUPS.map(([i, j]) => {
+      const w1 = winnerOf(r64Pods[i], 'r32');
+      const w2 = winnerOf(r64Pods[j], 'r32');
+      return [w1, w2].filter(Boolean);
+    });
+
+    // S16 pods: 2 R32 winners face each other
+    const s16Pods = S16_GROUPS.map(([i, j]) => {
+      const w1 = winnerOf(r32Pods[i], 's16');
+      const w2 = winnerOf(r32Pods[j], 's16');
+      return [w1, w2].filter(Boolean);
+    });
+
+    // E8 pod: S16 winners
+    const e8Pod = s16Pods.map(pod => winnerOf(pod, 'e8')).filter(Boolean);
+
+    return `<div class="bkr-region">
+      <h3>${region}</h3>
+      <div class="bkr-rounds">
+        ${renderCol(r64Pods, POD_H.r64, 'r32', 'R64')}
+        ${renderCol(r32Pods, POD_H.r32, 's16', 'R32')}
+        ${renderCol(s16Pods, POD_H.s16, 'e8',  'S16')}
+        ${renderCol([e8Pod], POD_H.e8,  'f4',  'E8')}
+      </div>
+    </div>`;
+  }).join('');
+
+  const fe2 = state.focusEntry ?? -1;
+  const selectorHtml = `<div class="entry-selector">
+    <span class="es-label">Show picks for:</span>
+    <button class="es-btn ${fe2 === -1 ? 'active' : ''}" onclick="setFocusEntry(-1)">All</button>
+    ${state.entryAlive.map((alive, i) =>
+      `<button class="es-btn ${fe2 === i ? 'active' : ''}" onclick="setFocusEntry(${i})">Entry ${i+1}</button>`
+    ).join('')}
+  </div>`;
+
+  document.getElementById('bracketSection').innerHTML =
+    `<div class="section-title">Bracket</div>
+    ${selectorHtml}
+    <div class="bracket-tree-grid">${regionsHtml}</div>`;
 }
 
 function renderAll() {
@@ -876,6 +1027,7 @@ function renderAll() {
   renderDayCards();
   renderPicks();
   renderTable();
+  renderPicksHistory();
   renderBracket();
 }
 
