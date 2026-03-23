@@ -955,17 +955,22 @@ function renderBracket() {
     return best[advField] > 0 ? best : null;
   }
 
-  function bkrTeamHtml(t, advField) {
+  function isTeamOut(t) {
+    return isTournamentOut(t.name) ||
+      (t.win === 0 && t.cp === 0 && t.f4 === 0 && t.e8 === 0 && t.s16 === 0);
+  }
+
+  function bkrTeamHtml(t) {
     if (!t) return '';
-    const isElim = t[advField] === 0;
+    const out = isTeamOut(t);
     const picked = pickedSet.has(t.name);
-    const cls = picked ? (isElim ? 'picked-elim' : 'picked') : isElim ? 'elim' : '';
+    const cls = picked ? (out ? 'picked-elim' : 'picked') : out ? 'elim' : '';
     return `<div class="bkr-team ${cls}"><span class="bkr-seed">${t.seed}</span>${t.name}</div>`;
   }
 
-  function renderCol(pods, height, advField, label) {
+  function renderCol(pods, height, label) {
     const podsHtml = pods.map(teams => {
-      const inner = teams.filter(Boolean).map(t => bkrTeamHtml(t, advField)).join('');
+      const inner = teams.filter(Boolean).map(t => bkrTeamHtml(t)).join('');
       return `<div class="bkr-pod" style="height:${height}px">${inner}</div>`;
     }).join('');
     return `<div class="bkr-col"><div class="bkr-col-hdr">${label}</div>${podsHtml}</div>`;
@@ -992,10 +997,10 @@ function renderBracket() {
     return `<div class="bkr-region">
       <h3>${region}</h3>
       <div class="bkr-rounds">
-        ${renderCol(r64Pods, POD_H.r64, 'r32', 'R64')}
-        ${renderCol(r32Pods, POD_H.r32, 's16', 'R32')}
-        ${renderCol(s16Pods, POD_H.s16, 'e8',  'S16')}
-        ${renderCol([e8Pod], POD_H.e8,  'f4',  'E8')}
+        ${renderCol(r64Pods, POD_H.r64, 'R64')}
+        ${renderCol(r32Pods, POD_H.r32, 'R32')}
+        ${renderCol(s16Pods, POD_H.s16, 'S16')}
+        ${renderCol([e8Pod], POD_H.e8,  'E8')}
       </div>
     </div>`;
   }).join('');
