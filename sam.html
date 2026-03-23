@@ -177,7 +177,6 @@ td { padding: 6px 9px; white-space: nowrap; }
 .bkr-pod { display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; padding: 2px; }
 .bkr-team { display: flex; align-items: center; gap: 3px; padding: 2px 5px; margin: 1px 0; border-radius: 3px; font-size: 0.64rem; min-height: 20px; white-space: nowrap; color: #d1d5db; }
 .bkr-team.elim { color: #4b5563; text-decoration: line-through; }
-.bkr-team.won { background: #14532d; color: #86efac; font-weight: 600; }
 .bkr-team.picked { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
 .bkr-team.picked-elim { background: #1e3a5f44; color: #93c5fd66; text-decoration: line-through; }
 .bkr-seed { font-size: 0.55rem; color: #4b5563; min-width: 16px; flex-shrink: 0; }
@@ -958,11 +957,9 @@ function renderBracket() {
 
   function bkrTeamHtml(t, advField) {
     if (!t) return '';
-    const prob = t[advField];
-    const isElim = prob === 0;
-    const isWon  = prob === 100;
+    const isElim = t[advField] === 0;
     const picked = pickedSet.has(t.name);
-    const cls = picked ? (isElim ? 'picked-elim' : 'picked') : isElim ? 'elim' : isWon ? 'won' : '';
+    const cls = picked ? (isElim ? 'picked-elim' : 'picked') : isElim ? 'elim' : '';
     return `<div class="bkr-team ${cls}"><span class="bkr-seed">${t.seed}</span>${t.name}</div>`;
   }
 
